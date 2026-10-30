@@ -79,6 +79,7 @@ function tokenforge_crucible_boot() {
 	require_once __DIR__ . '/includes/scss-settings.php';
 	require_once __DIR__ . '/includes/scss-sync.php';
 	require_once __DIR__ . '/includes/rest-scss.php';
+	require_once __DIR__ . '/includes/acss-scss.php';
 	require_once __DIR__ . '/includes/builder-dock.php';
 	require_once __DIR__ . '/includes/recipes.php';
 
