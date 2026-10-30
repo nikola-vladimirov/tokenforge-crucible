@@ -1,12 +1,13 @@
 <?php
 /**
  * Plugin Name:       TokenForge Crucible
- * Plugin URI:
- * Description:       Private add-on for TokenForge: restores removed features.
- * Version:           0.1.0
+ * Plugin URI:        https://pristadigital.com
+ * Description:       Add-on for TokenForge that restores Global SCSS, custom recipes and builder sync.
+ * Version:           0.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
- * Author:            Nikola Vladimirov
+ * Author:            Prista Digital
+ * Author URI:        https://pristadigital.com
  * License:           GPL-2.0-or-later
  * Text Domain:       tokenforge-crucible
  * Domain Path:       /languages
@@ -19,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.1.0' );
+define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.2.0' );
 define( 'TOKENFORGE_CRUCIBLE_FILE', __FILE__ );
 
 // TokenForge 0.54.1 is the first build with the wp.hooks dashboard filters Crucible uses.
