@@ -76,6 +76,10 @@ function tokenforge_crucible_boot() {
 	require_once __DIR__ . '/includes/scss.php';
 	add_filter( 'tokenforge_global_scss', 'tokenforge_crucible_scss_source' );
 	require_once __DIR__ . '/includes/admin-scss.php';
+	require_once __DIR__ . '/includes/scss-settings.php';
+	require_once __DIR__ . '/includes/scss-sync.php';
+	require_once __DIR__ . '/includes/rest-scss.php';
+	require_once __DIR__ . '/includes/builder-dock.php';
 }
 
 /**
