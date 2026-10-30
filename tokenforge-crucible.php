@@ -22,8 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.1.0' );
 define( 'TOKENFORGE_CRUCIBLE_FILE', __FILE__ );
 
-// TokenForge 0.53.7 is the first build with the tokenforge_recipes filter.
-define( 'TOKENFORGE_CRUCIBLE_MIN_TOKENFORGE_VERSION', '0.53.7' );
+// TokenForge 0.54.1 is the first build with the wp.hooks dashboard filters Crucible uses.
+define( 'TOKENFORGE_CRUCIBLE_MIN_TOKENFORGE_VERSION', '0.54.1' );
 
 /**
  * Checks whether the active TokenForge version can run this add-on.
@@ -80,6 +80,14 @@ function tokenforge_crucible_boot() {
 	require_once __DIR__ . '/includes/scss-sync.php';
 	require_once __DIR__ . '/includes/rest-scss.php';
 	require_once __DIR__ . '/includes/builder-dock.php';
+	require_once __DIR__ . '/includes/recipes.php';
+
+	tokenforge_crucible_scss_migrate();
+
+	// Builder <-> Global SCSS sync, as TokenForge 0.53.7 started it (Bricks only).
+	if ( \TokenForge\Platforms\Bricks::is_active() ) {
+		new \TokenForgeCrucible\Scss_Sync();
+	}
 }
 
 /**

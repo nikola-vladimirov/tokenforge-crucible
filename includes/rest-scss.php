@@ -55,12 +55,36 @@ function tokenforge_crucible_register_dock_routes() {
 					array(
 						'source'    => $source,
 						'rev'       => md5( $source ),
-						'enabled'   => true,
+						'enabled'   => tokenforge_crucible_scss_enabled(),
 						'sync'      => ! empty( $sync['sync'] ),
+						'sync_pull'   => ! empty( $sync['sync_pull'] ),
+						'sync_create' => ! empty( $sync['sync_create'] ),
 						'status'    => tokenforge_crucible_scss_status( $source ),
 						'ref'       => tokenforge_crucible_scss_reference(),
 						'recipes'   => \TokenForge\Recipes::all(),
-						'recipes_on' => false,
+						'recipes_on' => ! empty( \TokenForge\Recipes::settings()['enabled'] ),
+					)
+				);
+			},
+		)
+	);
+
+	register_rest_route(
+		'tokenforge-crucible/v1',
+		'/scss-sync-settings',
+		array(
+			'methods'             => 'POST',
+			'permission_callback' => $permission,
+			'callback'            => static function ( $request ) {
+				tokenforge_crucible_sync_save( (array) $request->get_json_params() );
+				$sync = tokenforge_crucible_sync_settings();
+
+				return rest_ensure_response(
+					array(
+						'ok'          => true,
+						'sync'        => $sync['sync'],
+						'sync_pull'   => $sync['sync_pull'],
+						'sync_create' => $sync['sync_create'],
 					)
 				);
 			},
@@ -143,7 +167,17 @@ function tokenforge_crucible_register_dock_routes() {
 			'callback'            => static function ( $request ) {
 				$body = (array) $request->get_json_params();
 
+				$generator = \TokenForge\Css_Generator::get_instance();
+				$flagged   = isset( $body['enabled'] );
+
+				if ( $flagged ) {
+					update_option( 'tokenforge_crucible_scss_enabled', ! empty( $body['enabled'] ), false );
+				}
+
 				if ( ! isset( $body['source'] ) || ! is_string( $body['source'] ) ) {
+					if ( $flagged ) {
+						$generator->generate();
+					}
 					return rest_ensure_response( array( 'ok' => false, 'error' => 'No source.' ) );
 				}
 
@@ -151,6 +185,9 @@ function tokenforge_crucible_register_dock_routes() {
 				$current = (string) get_option( tokenforge_crucible_scss_option(), '' );
 
 				if ( empty( $body['force'] ) && isset( $body['rev'] ) && md5( $current ) !== $body['rev'] && $source !== $current ) {
+					if ( $flagged ) {
+						$generator->generate();
+					}
 					return rest_ensure_response(
 						array(
 							'ok'       => false,
@@ -162,9 +199,10 @@ function tokenforge_crucible_register_dock_routes() {
 				}
 
 				update_option( tokenforge_crucible_scss_option(), $source, false );
-				$sync      = TokenForgeCrucible\Scss_Sync::push();
-				$generator = \TokenForge\Css_Generator::get_instance();
+				$sync = TokenForgeCrucible\Scss_Sync::push();
 				$generator->generate();
+				// The push may have rewritten the source.
+				$source = (string) get_option( tokenforge_crucible_scss_option(), '' );
 
 				return rest_ensure_response(
 					array(

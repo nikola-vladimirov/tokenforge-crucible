@@ -2449,7 +2449,7 @@ class Scss_Sync {
 		}
 		if ( $result['source_changed'] ) {
 			$opts['source'] = $src;
-			Scss::save_settings( $opts );
+			update_option( tokenforge_crucible_scss_option(), $src, false );
 		}
 		self::$busy = true;
 		if ( $changed ) {
@@ -2607,7 +2607,7 @@ class Scss_Sync {
 		}
 		if ( $touched ) {
 			$opts['source'] = $src;
-			Scss::save_settings( $opts );
+			update_option( tokenforge_crucible_scss_option(), $src, false );
 		}
 		if ( $restore ) {
 			// Put the SCSS values back over the stale copy (fields and CSS panel).

@@ -1,6 +1,9 @@
 <?php
 /**
- * Global SCSS editor screen.
+ * Global SCSS inside the TokenForge dashboard (its own nav entry, no submenu).
+ *
+ * The dashboard's section list is open through wp.hooks (tokenforge.sections,
+ * tokenforge.nav, tokenforge.render). assets/admin/crucible-sections.js uses them.
  *
  * @package TokenForge_Crucible
  */
@@ -10,147 +13,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Adds the Global SCSS screen under the TokenForge menu.
- */
-function tokenforge_crucible_admin_menu() {
-	add_submenu_page(
-		'tokenforge',
-		__( 'Global SCSS', 'tokenforge-crucible' ),
-		__( 'Global SCSS', 'tokenforge-crucible' ),
-		'manage_options',
-		'tokenforge-crucible-scss',
-		'tokenforge_crucible_scss_screen'
-	);
-}
-
-/**
- * Renders the Global SCSS screen.
- */
-function tokenforge_crucible_scss_screen() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'You do not have permission to edit the Global SCSS.', 'tokenforge-crucible' ) );
-	}
-	?>
-	<div class="wrap">
-		<h1><?php echo esc_html__( 'Global SCSS', 'tokenforge-crucible' ); ?></h1>
-		<p><?php echo esc_html__( 'This SCSS is appended to the styles TokenForge compiles for the site.', 'tokenforge-crucible' ); ?></p>
-		<textarea id="tokenforge-crucible-scss" name="tokenforge_crucible_scss" rows="20" class="large-text code"><?php echo esc_textarea( get_option( tokenforge_crucible_scss_option(), '' ) ); ?></textarea>
-		<p><button type="button" class="button button-primary" id="tokenforge-crucible-save"><?php echo esc_html__( 'Save', 'tokenforge-crucible' ); ?></button></p>
-	</div>
-	<?php
-}
-
-/**
- * Enqueues the editor assets on the Global SCSS screen.
+ * Enqueues the Global SCSS section on the TokenForge dashboard.
+ *
+ * Runs before TokenForge's own admin script (priority 1), so the section filters
+ * are registered before the dashboard builds its navigation.
  *
  * @param string $hook The current admin page hook suffix.
  */
 function tokenforge_crucible_scss_enqueue( $hook ) {
-	if ( get_plugin_page_hookname( 'tokenforge-crucible-scss', 'tokenforge' ) !== $hook ) {
+	if ( 'toplevel_page_tokenforge' !== $hook ) {
 		return;
 	}
 
 	$url = plugin_dir_url( TOKENFORGE_CRUCIBLE_FILE ) . 'assets/admin/';
 
-	wp_enqueue_script(
-		'tokenforge-crucible-scss-outline',
-		$url . 'scss-outline.js',
-		array(),
-		TOKENFORGE_CRUCIBLE_VERSION,
-		true
-	);
-
-	wp_enqueue_script(
-		'tokenforge-crucible-scss-editor',
-		$url . 'scss-editor.js',
-		array( 'tokenforge-crucible-scss-outline' ),
-		TOKENFORGE_CRUCIBLE_VERSION,
-		true
-	);
-
-	wp_enqueue_script(
-		'tokenforge-crucible-screen',
-		$url . 'scss-screen.js',
-		array( 'tokenforge-crucible-scss-editor' ),
-		TOKENFORGE_CRUCIBLE_VERSION,
-		true
-	);
-
-	wp_localize_script(
-		'tokenforge-crucible-screen',
-		'TokenForgeCrucible',
-		array(
-			'tfRest'       => esc_url_raw( rest_url( 'tokenforge/v1' ) ),
-			'crucibleRest' => esc_url_raw( rest_url( 'tokenforge-crucible/v1' ) ),
-			'nonce'        => wp_create_nonce( 'wp_rest' ),
-		)
-	);
-}
-
-/**
- * Returns the stored Global SCSS.
- *
- * @return WP_REST_Response
- */
-function tokenforge_crucible_scss_rest_get() {
-	return rest_ensure_response(
-		array(
-			'scss' => get_option( tokenforge_crucible_scss_option(), '' ),
-		)
-	);
-}
-
-/**
- * Saves the Global SCSS.
- *
- * @param WP_REST_Request $request The request.
- * @return WP_REST_Response|WP_Error
- */
-function tokenforge_crucible_scss_rest_save( $request ) {
-	$value = $request->get_param( 'scss' );
-
-	if ( ! is_string( $value ) ) {
-		return new WP_Error(
-			'tokenforge_crucible_scss_invalid',
-			__( 'The SCSS must be a string.', 'tokenforge-crucible' ),
-			array( 'status' => 400 )
-		);
+	wp_enqueue_style( 'tokenforge-crucible-admin', $url . 'crucible-admin.css', array( 'tokenforge-admin' ), TOKENFORGE_CRUCIBLE_VERSION );
+	// CodeMirror (SCSS mode) when wp-admin has it; the shared editor falls back to the textarea without it.
+	if ( function_exists( 'wp_enqueue_code_editor' ) ) {
+		wp_enqueue_code_editor( array( 'type' => 'text/x-scss', 'codemirror' => array( 'indentUnit' => 4, 'tabSize' => 4, 'indentWithTabs' => true ) ) );
 	}
 
-	update_option( tokenforge_crucible_scss_option(), $value, false );
+	wp_enqueue_script( 'tokenforge-crucible-scss-outline', $url . 'scss-outline.js', array(), TOKENFORGE_CRUCIBLE_VERSION, true );
+	wp_enqueue_script( 'tokenforge-crucible-scss-editor', $url . 'scss-editor.js', array( 'tokenforge-crucible-scss-outline' ), TOKENFORGE_CRUCIBLE_VERSION, true );
+	wp_enqueue_script( 'tokenforge-crucible-sections', $url . 'crucible-sections.js', array( 'wp-hooks', 'wp-i18n', 'tokenforge-crucible-scss-editor' ), TOKENFORGE_CRUCIBLE_VERSION, true );
+	wp_set_script_translations( 'tokenforge-crucible-sections', 'tokenforge-crucible', plugin_dir_path( TOKENFORGE_CRUCIBLE_FILE ) . 'languages' );
 
-	return rest_ensure_response( array( 'saved' => true ) );
-}
-
-/**
- * Registers the Global SCSS REST routes.
- */
-function tokenforge_crucible_register_routes() {
-	register_rest_route(
-		'tokenforge-crucible/v1',
-		'/scss',
+	wp_localize_script(
+		'tokenforge-crucible-sections',
+		'TokenForgeCrucible',
 		array(
-			array(
-				'methods'             => 'POST',
-				'permission_callback' => function () {
-					return current_user_can( 'manage_options' );
-				},
-				'callback'            => 'tokenforge_crucible_scss_rest_save',
-				'args'                => array(
-					'scss' => array(
-						'type'              => 'string',
-						'sanitize_callback' => null,
-						'validate_callback' => function ( $value ) {
-							return is_string( $value );
-						},
-					),
-				),
-			),
+			'rest'   => esc_url_raw( rest_url( 'tokenforge-crucible/v1' ) ),
+			'tfRest' => esc_url_raw( rest_url( 'tokenforge/v1' ) ),
+			'nonce'  => wp_create_nonce( 'wp_rest' ),
 		)
 	);
 }
 
-// TokenForge registers its top-level menu at the default priority, and the submenu needs that parent to exist.
-add_action( 'admin_menu', 'tokenforge_crucible_admin_menu', 20 );
-add_action( 'admin_enqueue_scripts', 'tokenforge_crucible_scss_enqueue' );
-add_action( 'rest_api_init', 'tokenforge_crucible_register_routes' );
+// Priority 1: this script must be enqueued before TokenForge's admin script, which reads the filters at load.
+add_action( 'admin_enqueue_scripts', 'tokenforge_crucible_scss_enqueue', 1 );

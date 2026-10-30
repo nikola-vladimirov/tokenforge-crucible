@@ -29,6 +29,10 @@ function tokenforge_crucible_scss_source( $scss ) {
 		$scss = '';
 	}
 
+	if ( ! tokenforge_crucible_scss_enabled() ) {
+		return $scss;
+	}
+
 	$enhanced = get_option( tokenforge_crucible_scss_option(), '' );
 
 	if ( ! is_string( $enhanced ) || '' === trim( $enhanced ) ) {
@@ -37,4 +41,13 @@ function tokenforge_crucible_scss_source( $scss ) {
 
 	// The value is SCSS compiled by TokenForge, so it must not be escaped here.
 	return $scss . "\n" . $enhanced;
+}
+
+/**
+ * Is the Global SCSS switched on? (Default on, as in 0.53.7; independent of the sync.)
+ *
+ * @return bool
+ */
+function tokenforge_crucible_scss_enabled() {
+	return (bool) get_option( 'tokenforge_crucible_scss_enabled', true );
 }
