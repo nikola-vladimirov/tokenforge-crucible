@@ -55,6 +55,7 @@ function tokenforge_crucible_register_dock_routes() {
 					array(
 						'source'    => $source,
 						'rev'       => md5( $source ),
+						'enabled'   => true,
 						'sync'      => ! empty( $sync['sync'] ),
 						'status'    => tokenforge_crucible_scss_status( $source ),
 						'ref'       => tokenforge_crucible_scss_reference(),

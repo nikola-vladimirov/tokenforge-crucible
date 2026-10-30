@@ -131,13 +131,6 @@ function tokenforge_crucible_register_routes() {
 		'/scss',
 		array(
 			array(
-				'methods'             => 'GET',
-				'permission_callback' => function () {
-					return current_user_can( 'manage_options' );
-				},
-				'callback'            => 'tokenforge_crucible_scss_rest_get',
-			),
-			array(
 				'methods'             => 'POST',
 				'permission_callback' => function () {
 					return current_user_can( 'manage_options' );

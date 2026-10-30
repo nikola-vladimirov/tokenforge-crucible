@@ -26,7 +26,8 @@ function tokenforge_crucible_dock_enqueue() {
 	wp_enqueue_script( 'tokenforge-crucible-scss-outline', $base . 'assets/admin/scss-outline.js', array(), $ver, true );
 	wp_enqueue_script( 'tokenforge-crucible-scss-editor', $base . 'assets/admin/scss-editor.js', array( 'tokenforge-crucible-scss-outline' ), $ver, true );
 	wp_enqueue_style( 'tokenforge-crucible-scss-dock', $base . 'assets/builder/scss-dock.css', array(), $ver );
-	wp_enqueue_script( 'tokenforge-crucible-scss-dock', $base . 'assets/builder/scss-dock.js', array( 'tokenforge-crucible-scss-editor' ), $ver, true );
+	wp_enqueue_script( 'tokenforge-crucible-builder-classes', plugin_dir_url( TOKENFORGE_CRUCIBLE_FILE ) . 'assets/builder/builder-classes.js', array(), TOKENFORGE_CRUCIBLE_VERSION, true );
+	wp_enqueue_script( 'tokenforge-crucible-scss-dock', $base . 'assets/builder/scss-dock.js', array( 'tokenforge-crucible-scss-editor', 'tokenforge-crucible-builder-classes' ), $ver, true );
 
 	wp_localize_script(
 		'tokenforge-crucible-scss-dock',

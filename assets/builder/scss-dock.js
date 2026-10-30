@@ -372,10 +372,10 @@
 	// builder writes back when you move on, so it gets the new settings too (the
 	// way the builder itself does it), and the panels are drawn again.
 	function builderClasses( list ) {
-		if ( ! list || ! list.length || ! window.TokenForgeApp ) { return; }
+		if ( ! list || ! list.length || ! window.TokenForgeCrucibleBuilderClasses ) { return; }
 		// Our own change: not sent back into the SCSS.
 		list.forEach( function ( c ) { snaps[ c.name ] = JSON.stringify( c.settings || {} ); delete pend[ c.name ]; } );
-		window.TokenForgeApp.builderClasses( list );
+		window.TokenForgeCrucibleBuilderClasses( list );
 	}
 	function save( force ) {
 		if ( st.saving || ! ed ) { return; }
