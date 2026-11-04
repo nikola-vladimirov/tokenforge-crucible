@@ -3,14 +3,13 @@
  * Plugin Name:       TokenForge Crucible
  * Plugin URI:        https://pristadigital.com
  * Description:       Add-on for TokenForge that restores Global SCSS, custom recipes and builder sync.
- * Version:           0.2.0
+ * Version:           0.3.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Prista Digital
  * Author URI:        https://pristadigital.com
  * License:           GPL-2.0-or-later
  * Text Domain:       tokenforge-crucible
- * Domain Path:       /languages
  * Requires Plugins:  tokenforge
  *
  * @package TokenForge_Crucible
@@ -20,11 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.2.0' );
+define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.3.0' );
 define( 'TOKENFORGE_CRUCIBLE_FILE', __FILE__ );
 
-// TokenForge 0.54.1 is the first build with the wp.hooks dashboard filters Crucible uses.
-define( 'TOKENFORGE_CRUCIBLE_MIN_TOKENFORGE_VERSION', '0.54.1' );
+// TokenForge 0.54.2 is the first build with the Transfer and Starter hooks Crucible uses.
+define( 'TOKENFORGE_CRUCIBLE_MIN_TOKENFORGE_VERSION', '0.54.2' );
 
 /**
  * Checks whether the active TokenForge version can run this add-on.
@@ -83,6 +82,7 @@ function tokenforge_crucible_boot() {
 	require_once __DIR__ . '/includes/acss-scss.php';
 	require_once __DIR__ . '/includes/builder-dock.php';
 	require_once __DIR__ . '/includes/recipes.php';
+	require_once __DIR__ . '/includes/transfer-starter.php';
 
 	tokenforge_crucible_scss_migrate();
 
@@ -91,18 +91,6 @@ function tokenforge_crucible_boot() {
 		new \TokenForgeCrucible\Scss_Sync();
 	}
 }
-
-/**
- * Loads the plugin text domain.
- */
-function tokenforge_crucible_load_textdomain() {
-	load_plugin_textdomain(
-		'tokenforge-crucible',
-		false,
-		dirname( plugin_basename( TOKENFORGE_CRUCIBLE_FILE ) ) . '/languages'
-	);
-}
-add_action( 'init', 'tokenforge_crucible_load_textdomain' );
 
 /**
  * Starts the add-on or registers the requirement notice.

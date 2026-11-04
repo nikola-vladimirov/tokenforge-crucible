@@ -11,6 +11,12 @@
 	var cfg = window.TokenForgeCrucible;
 	if ( ! hooks || ! cfg ) { return; }
 
+	// Export / Import and the Starter reset: the Global SCSS and your recipes parts.
+	hooks.addFilter( 'tokenforge.import_labels', 'tokenforge-crucible', function ( labels ) { return Object.assign( {}, labels, { scss: 'Global SCSS' } ); } );
+	hooks.addFilter( 'tokenforge.reset_parts', 'tokenforge-crucible', function ( parts ) {
+		return parts.concat( [ [ 'scss', 'Global SCSS', 'your SCSS code' ], [ 'recipes', 'Your recipes', 'your own recipes' ] ] );
+	} );
+
 	var __ = wp.i18n ? wp.i18n.__ : function ( s ) { return s; };
 	var ID = 'scss';
 	var DRAFT = 'tokenforge-crucible-scss-draft';

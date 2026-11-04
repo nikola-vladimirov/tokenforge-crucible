@@ -2,6 +2,13 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.0
+
+- Global SCSS and your recipes are part of Export / Import and of the Reset to defaults panel, in the 0.53.7 file format.
+- Breakpoints are exported and imported with Global SCSS, as 0.53.7 did.
+- Requires TokenForge 0.54.2 or later (new hooks for Export / Import and the Starter reset).
+- readme.txt added; the text domain loader removed (WordPress loads it).
+
 ## 0.2.0
 
 Restores the features the WordPress.org build of TokenForge removed, on TokenForge 0.54.1 and later:
