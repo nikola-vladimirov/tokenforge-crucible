@@ -89,13 +89,21 @@ function tokenforge_crucible_recipes_routes() {
 						$code = isset( $item['code'] ) && is_string( $item['code'] ) ? substr( str_replace( "\r\n", "\n", $item['code'] ), 0, 4000 ) : '';
 						// The first entry with a name wins, as in 0.53.7.
 						if ( '' !== $name && '' !== trim( $code ) && ! isset( $list[ $name ] ) ) {
-							$list[ $name ] = array( 'n' => $name, 'code' => $code );
+							$list[ $name ] = array(
+								'n'    => $name,
+								'code' => $code,
+							);
 						}
 					}
 
 					update_option( 'tokenforge_crucible_recipes', array_values( $list ), false );
 
-					return rest_ensure_response( array( 'ok' => true, 'recipes' => array_values( $list ) ) );
+					return rest_ensure_response(
+						array(
+							'ok'      => true,
+							'recipes' => array_values( $list ),
+						)
+					);
 				},
 			),
 		)
@@ -119,7 +127,10 @@ function tokenforge_crucible_recipes_migrate() {
 		$code = is_array( $r ) && isset( $r['code'] ) ? (string) $r['code'] : '';
 		if ( '' !== $name && '' !== trim( $code ) && ! in_array( $name, $seen, true ) ) {
 			$seen[] = $name;
-			$list[] = array( 'n' => $name, 'code' => $code );
+			$list[] = array(
+				'n'    => $name,
+				'code' => $code,
+			);
 		}
 	}
 

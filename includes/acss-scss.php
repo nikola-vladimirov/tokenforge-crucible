@@ -67,7 +67,7 @@ function tokenforge_crucible_acss_after_import( $result, $server, $request ) {
 		}
 	}
 	update_option( 'tokenforge_crucible_acss_last', $code, false );
-	$new    = ( '' === $user ? '' : $user . "\n\n" ) . $mark . "\n" . $code . "\n";
+	$new = ( '' === $user ? '' : $user . "\n\n" ) . $mark . "\n" . $code . "\n";
 	if ( $new !== $source ) {
 		update_option( tokenforge_crucible_scss_option(), $new, false );
 		\TokenForgeCrucible\Scss_Sync::push();

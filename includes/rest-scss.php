@@ -53,16 +53,16 @@ function tokenforge_crucible_register_dock_routes() {
 
 				return rest_ensure_response(
 					array(
-						'source'    => $source,
-						'rev'       => md5( $source ),
-						'enabled'   => tokenforge_crucible_scss_enabled(),
-						'sync'      => ! empty( $sync['sync'] ),
+						'source'      => $source,
+						'rev'         => md5( $source ),
+						'enabled'     => tokenforge_crucible_scss_enabled(),
+						'sync'        => ! empty( $sync['sync'] ),
 						'sync_pull'   => ! empty( $sync['sync_pull'] ),
 						'sync_create' => ! empty( $sync['sync_create'] ),
-						'status'    => tokenforge_crucible_scss_status( $source ),
-						'ref'       => tokenforge_crucible_scss_reference(),
-						'recipes'   => \TokenForge\Recipes::all(),
-						'recipes_on' => ! empty( \TokenForge\Recipes::settings()['enabled'] ),
+						'status'      => tokenforge_crucible_scss_status( $source ),
+						'ref'         => tokenforge_crucible_scss_reference(),
+						'recipes'     => \TokenForge\Recipes::all(),
+						'recipes_on'  => ! empty( \TokenForge\Recipes::settings()['enabled'] ),
 					)
 				);
 			},
@@ -114,7 +114,7 @@ function tokenforge_crucible_register_dock_routes() {
 			'callback'            => static function ( $request ) {
 				$body   = (array) $request->get_json_params();
 				$source = isset( $body['source'] ) ? (string) $body['source'] : '';
-				$result = \TokenForge\Scss::compile( $source );
+				$result = tokenforge_crucible_compile( $source );
 
 				return rest_ensure_response(
 					array(
@@ -178,7 +178,12 @@ function tokenforge_crucible_register_dock_routes() {
 					if ( $flagged ) {
 						$generator->generate();
 					}
-					return rest_ensure_response( array( 'ok' => false, 'error' => 'No source.' ) );
+					return rest_ensure_response(
+						array(
+							'ok'    => false,
+							'error' => 'No source.',
+						)
+					);
 				}
 
 				$source  = str_replace( "\r\n", "\n", $body['source'] );
@@ -251,12 +256,29 @@ function tokenforge_crucible_register_dock_routes() {
 				if ( isset( $body['mode'] ) && 'pull' === $body['mode'] ) {
 					$out = TokenForgeCrucible\Scss_Sync::live_pull( $source, $list );
 
-					return rest_ensure_response( array( 'ok' => true, 'source' => $out !== $source ? $out : null ) );
+					return rest_ensure_response(
+						array(
+							'ok'     => true,
+							'source' => $out !== $source ? $out : null,
+						)
+					);
 				}
 
-				$r = TokenForgeCrucible\Scss_Sync::push( array( 'source' => $source, 'classes' => $list, 'dry' => true ) );
+				$r = TokenForgeCrucible\Scss_Sync::push(
+					array(
+						'source'  => $source,
+						'classes' => $list,
+						'dry'     => true,
+					)
+				);
 
-				return rest_ensure_response( array( 'ok' => true, 'classes' => $r['classes'], 'errors' => $r['errors'] ) );
+				return rest_ensure_response(
+					array(
+						'ok'      => true,
+						'classes' => $r['classes'],
+						'errors'  => $r['errors'],
+					)
+				);
 			},
 		)
 	);

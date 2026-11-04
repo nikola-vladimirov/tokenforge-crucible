@@ -77,7 +77,6 @@ function tokenforge_crucible_boot() {
 	add_filter( 'tokenforge_global_scss', 'tokenforge_crucible_scss_source' );
 	require_once __DIR__ . '/includes/admin-scss.php';
 	require_once __DIR__ . '/includes/scss-settings.php';
-	require_once __DIR__ . '/includes/scss-sync.php';
 	require_once __DIR__ . '/includes/rest-scss.php';
 	require_once __DIR__ . '/includes/acss-scss.php';
 	require_once __DIR__ . '/includes/builder-dock.php';
@@ -86,10 +85,33 @@ function tokenforge_crucible_boot() {
 
 	tokenforge_crucible_scss_migrate();
 
+	// The sync class is 90 KB: load it only where it runs (Bricks pages, the REST routes, the admin).
+	$bricks = \TokenForge\Platforms\Bricks::is_active();
+	if ( $bricks || is_admin() || tokenforge_crucible_is_rest_request() ) {
+		require_once __DIR__ . '/includes/class-scss-sync.php';
+	}
+
 	// Builder <-> Global SCSS sync, as TokenForge 0.53.7 started it (Bricks only).
-	if ( \TokenForge\Platforms\Bricks::is_active() ) {
+	if ( $bricks ) {
 		new \TokenForgeCrucible\Scss_Sync();
 	}
+}
+
+/**
+ * Whether this request is a REST call. REST_REQUEST is not set yet at plugins_loaded.
+ *
+ * @return bool
+ */
+function tokenforge_crucible_is_rest_request() {
+	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		return true;
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reads the request type.
+	if ( isset( $_GET['rest_route'] ) ) {
+		return true;
+	}
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+	return false !== strpos( (string) $uri, '/' . rest_get_url_prefix() . '/' );
 }
 
 /**

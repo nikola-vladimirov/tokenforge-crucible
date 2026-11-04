@@ -85,6 +85,27 @@ function tokenforge_crucible_scss_migrate() {
 }
 
 /**
+ * Largest SCSS source the compile routes accept, in bytes.
+ */
+const TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES = 102400;
+
+/**
+ * Compiles SCSS unless it is over the size cap, so one request cannot tie up PHP.
+ *
+ * @param string $source SCSS source.
+ * @return array Same keys as TokenForge's Scss::compile(): css and error.
+ */
+function tokenforge_crucible_compile( $source ) {
+	if ( strlen( $source ) > TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES ) {
+		return array(
+			'css'   => '',
+			'error' => 'SCSS is larger than 100 KB.',
+		);
+	}
+	return \TokenForge\Scss::compile( $source );
+}
+
+/**
  * Registers the compile-scss ability (0.53.7) next to TokenForge's own abilities.
  * Only when TokenForge's AI abilities switch is on, since that is when its
  * 'tokenforge' ability category is registered.
@@ -104,24 +125,38 @@ function tokenforge_crucible_register_ability() {
 			'input_schema'        => array(
 				'type'                 => 'object',
 				'properties'           => array(
-					'scss' => array( 'type' => 'string', 'description' => 'SCSS source.' ),
+					'scss' => array(
+						'type'        => 'string',
+						'description' => 'SCSS source.',
+					),
 				),
 				'required'             => array( 'scss' ),
 				'additionalProperties' => false,
 			),
 			'output_schema'       => array( 'type' => 'object' ),
 			'execute_callback'    => static function ( $input = array() ) {
-				$r = \TokenForge\Scss::compile( isset( $input['scss'] ) ? (string) $input['scss'] : '' );
-				return array( 'ok' => null === $r['error'], 'css' => $r['css'], 'error' => $r['error'] );
+				$r = tokenforge_crucible_compile( isset( $input['scss'] ) ? (string) $input['scss'] : '' );
+				return array(
+					'ok'    => null === $r['error'],
+					'css'   => $r['css'],
+					'error' => $r['error'],
+				);
 			},
 			'permission_callback' => static function () {
-				return current_user_can( 'edit_posts' );
+				return current_user_can( 'manage_options' );
 			},
 			'meta'                => array(
-				'annotations'  => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ),
+				'annotations'  => array(
+					'readonly'    => true,
+					'destructive' => false,
+					'idempotent'  => true,
+				),
 				'public'       => true,
 				'show_in_rest' => true,
-				'mcp'          => array( 'public' => true, 'type' => 'tool' ),
+				'mcp'          => array(
+					'public' => true,
+					'type'   => 'tool',
+				),
 			),
 		)
 	);

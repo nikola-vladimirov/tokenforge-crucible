@@ -33,9 +33,9 @@ add_filter(
 add_filter(
 	'tokenforge_transfer_export_data',
 	static function ( $data ) {
-		$sync             = tokenforge_crucible_sync_settings();
+		$sync = tokenforge_crucible_sync_settings();
 		// 0.53.7 kept the breakpoints (bp_*) in this part too, so the file format matches.
-		$data['scss']     = array_merge(
+		$data['scss']    = array_merge(
 			array_intersect_key( (array) \TokenForge\Scss::settings(), array_flip( tokenforge_crucible_bp_keys() ) ),
 			array(
 				'enabled'     => tokenforge_crucible_scss_enabled(),
@@ -45,14 +45,17 @@ add_filter(
 				'sync_create' => $sync['sync_create'],
 			)
 		);
-		$rec              = isset( $data['recipes'] ) && is_array( $data['recipes'] ) ? $data['recipes'] : array();
-		$rec['custom']    = array_map(
+		$rec             = isset( $data['recipes'] ) && is_array( $data['recipes'] ) ? $data['recipes'] : array();
+		$rec['custom']   = array_map(
 			static function ( $r ) {
-				return array( 'name' => $r['n'], 'code' => $r['code'] );
+				return array(
+					'name' => $r['n'],
+					'code' => $r['code'],
+				);
 			},
 			tokenforge_crucible_recipes_saved()
 		);
-		$data['recipes']  = $rec;
+		$data['recipes'] = $rec;
 		return $data;
 	}
 );
@@ -62,7 +65,7 @@ add_action(
 	static function ( $done, $data ) {
 		if ( in_array( 'scss', $done, true ) && isset( $data['scss'] ) && is_array( $data['scss'] ) ) {
 			$in = $data['scss'];
-			if ( isset( $in['source'] ) && is_string( $in['source'] ) ) {
+			if ( isset( $in['source'] ) && is_string( $in['source'] ) && strlen( $in['source'] ) <= TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES ) {
 				update_option( tokenforge_crucible_scss_option(), str_replace( "\r\n", "\n", $in['source'] ), false );
 			}
 			if ( array_key_exists( 'enabled', $in ) ) {
@@ -82,7 +85,10 @@ add_action(
 				$code = isset( $item['code'] ) && is_string( $item['code'] ) ? substr( str_replace( "\r\n", "\n", $item['code'] ), 0, 4000 ) : '';
 				// The first entry with a name wins, as in the Recipes screen.
 				if ( '' !== $name && '' !== trim( $code ) && ! isset( $list[ $name ] ) ) {
-					$list[ $name ] = array( 'n' => $name, 'code' => $code );
+					$list[ $name ] = array(
+						'n'    => $name,
+						'code' => $code,
+					);
 				}
 			}
 			update_option( 'tokenforge_crucible_recipes', array_values( $list ), false );

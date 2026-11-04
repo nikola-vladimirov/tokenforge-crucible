@@ -109,17 +109,129 @@ class Scss_Sync {
 
 	/** CSS functions (values and selectors): anything else in a snippet is SCSS. */
 	const CSS_FUNCTIONS = array(
-		'var', 'calc', 'clamp', 'min', 'max', 'abs', 'sign', 'round', 'mod', 'rem', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'pow', 'sqrt', 'hypot', 'log', 'exp',
-		'rgb', 'rgba', 'hsl', 'hsla', 'hwb', 'lab', 'lch', 'oklab', 'oklch', 'color', 'color-mix', 'light-dark', 'url', 'image-set', 'cross-fade', 'element',
-		'linear-gradient', 'radial-gradient', 'conic-gradient', 'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient',
-		'translate', 'translatex', 'translatey', 'translatez', 'translate3d', 'rotate', 'rotatex', 'rotatey', 'rotatez', 'rotate3d', 'scale', 'scalex', 'scaley', 'scalez', 'scale3d',
-		'skew', 'skewx', 'skewy', 'matrix', 'matrix3d', 'perspective', 'cubic-bezier', 'steps', 'linear', 'attr', 'counter', 'counters', 'env', 'fit-content', 'minmax', 'repeat',
-		'format', 'local', 'blur', 'brightness', 'contrast', 'drop-shadow', 'grayscale', 'hue-rotate', 'invert', 'opacity', 'saturate', 'sepia',
-		'circle', 'ellipse', 'inset', 'polygon', 'path', 'rect', 'xywh', 'ray', 'anchor', 'anchor-size', 'view', 'scroll', 'symbols',
-		'not', 'is', 'where', 'has', 'nth-child', 'nth-of-type', 'nth-last-child', 'nth-last-of-type', 'lang', 'dir', 'host', 'host-context', 'slotted', 'part', 'state', 'highlight',
+		'var',
+		'calc',
+		'clamp',
+		'min',
+		'max',
+		'abs',
+		'sign',
+		'round',
+		'mod',
+		'rem',
+		'sin',
+		'cos',
+		'tan',
+		'asin',
+		'acos',
+		'atan',
+		'atan2',
+		'pow',
+		'sqrt',
+		'hypot',
+		'log',
+		'exp',
+		'rgb',
+		'rgba',
+		'hsl',
+		'hsla',
+		'hwb',
+		'lab',
+		'lch',
+		'oklab',
+		'oklch',
+		'color',
+		'color-mix',
+		'light-dark',
+		'url',
+		'image-set',
+		'cross-fade',
+		'element',
+		'linear-gradient',
+		'radial-gradient',
+		'conic-gradient',
+		'repeating-linear-gradient',
+		'repeating-radial-gradient',
+		'repeating-conic-gradient',
+		'translate',
+		'translatex',
+		'translatey',
+		'translatez',
+		'translate3d',
+		'rotate',
+		'rotatex',
+		'rotatey',
+		'rotatez',
+		'rotate3d',
+		'scale',
+		'scalex',
+		'scaley',
+		'scalez',
+		'scale3d',
+		'skew',
+		'skewx',
+		'skewy',
+		'matrix',
+		'matrix3d',
+		'perspective',
+		'cubic-bezier',
+		'steps',
+		'linear',
+		'attr',
+		'counter',
+		'counters',
+		'env',
+		'fit-content',
+		'minmax',
+		'repeat',
+		'format',
+		'local',
+		'blur',
+		'brightness',
+		'contrast',
+		'drop-shadow',
+		'grayscale',
+		'hue-rotate',
+		'invert',
+		'opacity',
+		'saturate',
+		'sepia',
+		'circle',
+		'ellipse',
+		'inset',
+		'polygon',
+		'path',
+		'rect',
+		'xywh',
+		'ray',
+		'anchor',
+		'anchor-size',
+		'view',
+		'scroll',
+		'symbols',
+		'not',
+		'is',
+		'where',
+		'has',
+		'nth-child',
+		'nth-of-type',
+		'nth-last-child',
+		'nth-last-of-type',
+		'lang',
+		'dir',
+		'host',
+		'host-context',
+		'slotted',
+		'part',
+		'state',
+		'highlight',
 	);
 
-	/** @var bool Re-entrancy guard (our own writes trigger the option hook). */
+	/**
+	 * Re-entrancy guard: our own writes trigger the option hook.
+	 *
+	 * @var bool
+	 */
 	private static $busy = false;
 
 	/**
@@ -155,10 +267,23 @@ class Scss_Sync {
 		}
 		if ( ! $list ) {
 			$list = array(
-				array( 'key' => 'desktop', 'width' => 1279, 'base' => true ),
-				array( 'key' => 'tablet_portrait', 'width' => 991 ),
-				array( 'key' => 'mobile_landscape', 'width' => 767 ),
-				array( 'key' => 'mobile_portrait', 'width' => 478 ),
+				array(
+					'key'   => 'desktop',
+					'width' => 1279,
+					'base'  => true,
+				),
+				array(
+					'key'   => 'tablet_portrait',
+					'width' => 991,
+				),
+				array(
+					'key'   => 'mobile_landscape',
+					'width' => 767,
+				),
+				array(
+					'key'   => 'mobile_portrait',
+					'width' => 478,
+				),
 			);
 		}
 		$by     = array();
@@ -200,9 +325,9 @@ class Scss_Sync {
 		for ( $i = 0, $n = strlen( $v ); $i < $n; $i++ ) {
 			$ch = $v[ $i ];
 			if ( '(' === $ch ) {
-				$depth++;
+				++$depth;
 			} elseif ( ')' === $ch ) {
-				$depth--;
+				--$depth;
 			}
 			$is_sep = ' ' === $sep ? ctype_space( $ch ) : $ch === $sep;
 			if ( $is_sep && 0 === $depth ) {
@@ -242,11 +367,11 @@ class Scss_Sync {
 			$j     = $open + 1;
 			while ( $j < $len && $depth > 0 ) {
 				if ( '{' === $css[ $j ] ) {
-					$depth++;
+					++$depth;
 				} elseif ( '}' === $css[ $j ] ) {
-					$depth--;
+					--$depth;
 				}
-				$j++;
+				++$j;
 			}
 			$body = substr( $css, $open + 1, $j - $open - 2 );
 			$i    = $j;
@@ -360,7 +485,10 @@ class Scss_Sync {
 		foreach ( $len as $i => $l ) {
 			$values[ $keys[ $i ] ] = $l;
 		}
-		$out = array( 'values' => $values, 'color' => array( 'raw' => $color ) );
+		$out = array(
+			'values' => $values,
+			'color'  => array( 'raw' => $color ),
+		);
 		if ( $inset ) {
 			$out['inset'] = true;
 		}
@@ -393,7 +521,16 @@ class Scss_Sync {
 	}
 
 	/** Filter functions the builder has fields for => unit the builder adds. */
-	const FILTERS = array( 'blur' => 'px', 'brightness' => '%', 'contrast' => '%', 'hue-rotate' => 'deg', 'invert' => '%', 'opacity' => '%', 'saturate' => '%', 'sepia' => '%' );
+	const FILTERS = array(
+		'blur'       => 'px',
+		'brightness' => '%',
+		'contrast'   => '%',
+		'hue-rotate' => 'deg',
+		'invert'     => '%',
+		'opacity'    => '%',
+		'saturate'   => '%',
+		'sepia'      => '%',
+	);
 
 	/**
 	 * A filter list → the builder's field value, or null.
@@ -504,7 +641,7 @@ class Scss_Sync {
 					$ok = null !== $d && $add( $fn, $d );
 					break;
 				case 'perspective':
-					$ok = 0 === $i && $add( 'perspective', $args[0] ); // the builder always writes it first
+					$ok = 0 === $i && $add( 'perspective', $args[0] ); // the builder always writes it first.
 					break;
 				default:
 					$ok = false;
@@ -553,25 +690,25 @@ class Scss_Sync {
 	 * ctx = "" | ":tablet_portrait" | ":hover" | ":tablet_portrait:hover".
 	 *
 	 * @param string $css   Compiled CSS.
-	 * @param string $class Class name (without dot).
+	 * @param string $class_name Class name (without dot).
 	 * @return array
 	 */
-	public static function css_to_units( $css, $class ) {
+	public static function css_to_units( $css, $class_name ) {
 		list( $bps, $mobile_first ) = self::breakpoints();
-		$pseudos = self::pseudos();
-		$rules   = array();
+		$pseudos                    = self::pseudos();
+		$rules                      = array();
 		self::css_rules( $css, '', $rules );
 		$units = array();
-		$root  = '.' . $class;
+		$root  = '.' . $class_name;
 		// Pass 1: contexts + declarations; display per context (align/gap fields depend on it).
 		$ctx_decls = array();
 		foreach ( $rules as $r ) {
 			list( $media, $sel, $body ) = $r;
-			$bp = '';
+			$bp                         = '';
 			if ( '' !== $media ) {
 				$re = $mobile_first ? '/^\(\s*min-width\s*:\s*([\d.]+)px\s*\)$/' : '/^\(\s*max-width\s*:\s*([\d.]+)px\s*\)$/';
 				if ( ! preg_match( $re, trim( $media ), $m ) || ! isset( $bps[ (int) round( (float) $m[1] ) ] ) ) {
-					continue; // not a Bricks breakpoint: SCSS only
+					continue; // not a Bricks breakpoint: SCSS only.
 				}
 				$bp = ':' . $bps[ (int) round( (float) $m[1] ) ];
 			}
@@ -582,7 +719,7 @@ class Scss_Sync {
 				}
 				$rest = substr( $one, strlen( $root ) );
 				if ( '' !== $rest && ! in_array( $rest, $pseudos, true ) ) {
-					continue; // descendant / other selector: SCSS only
+					continue; // descendant / other selector: SCSS only.
 				}
 				$ctx = $bp . $rest;
 				foreach ( self::css_decls( $body ) as $d ) {
@@ -671,8 +808,8 @@ class Scss_Sync {
 			} elseif ( in_array( $side, self::SIDES, true ) ) {
 				$u[ "$base|$side" ] = $value;
 			} else {
-				$p     = self::split( $value );
-				$pair  = 'block' === $side ? array( 'top', 'bottom' ) : array( 'left', 'right' );
+				$p    = self::split( $value );
+				$pair = 'block' === $side ? array( 'top', 'bottom' ) : array( 'left', 'right' );
 				if ( 'start' === $edge ) {
 					$u[ "$base|{$pair[0]}" ] = $value;
 				} elseif ( 'end' === $edge ) {
@@ -696,7 +833,12 @@ class Scss_Sync {
 			}
 			return $u;
 		}
-		$corners = array( 'border-top-left-radius' => 'top', 'border-top-right-radius' => 'right', 'border-bottom-right-radius' => 'bottom', 'border-bottom-left-radius' => 'left' );
+		$corners = array(
+			'border-top-left-radius'     => 'top',
+			'border-top-right-radius'    => 'right',
+			'border-bottom-right-radius' => 'bottom',
+			'border-bottom-left-radius'  => 'left',
+		);
 		if ( isset( $corners[ $prop ] ) ) {
 			$u[ '_border|radius|' . $corners[ $prop ] ] = $value;
 			return $u;
@@ -722,7 +864,7 @@ class Scss_Sync {
 				// Shorthand: width style color in any order.
 				$parts = self::split( $value );
 				if ( 1 === count( $parts ) && preg_match( '/^var\(/', $parts[0] ) ) {
-					return array(); // e.g. var(--border): can't be split into fields
+					return array(); // e.g. var(--border): can't be split into fields.
 				}
 				foreach ( $parts as $t ) {
 					if ( in_array( strtolower( $t ), self::BORDER_STYLES, true ) ) {
@@ -849,8 +991,8 @@ class Scss_Sync {
 				foreach ( array( 'width', 'radius' ) as $part ) {
 					foreach ( self::SIDES as $s ) {
 						if ( isset( $val[ $part ][ $s ] ) && '' !== (string) $val[ $part ][ $s ] ) {
-							$unit = isset( $val[ $part ]['unit'][ $s ] ) && ! in_array( $val[ $part ]['unit'][ $s ], array( '', '-', 'none' ), true ) ? $val[ $part ]['unit'][ $s ] : '';
-							$v    = (string) $val[ $part ][ $s ];
+							$unit                                = isset( $val[ $part ]['unit'][ $s ] ) && ! in_array( $val[ $part ]['unit'][ $s ], array( '', '-', 'none' ), true ) ? $val[ $part ]['unit'][ $s ] : '';
+							$v                                   = (string) $val[ $part ][ $s ];
 							$units[ $ctx ][ "_border|$part|$s" ] = '' !== $unit && false === strpos( $v, $unit ) ? $v . $unit : self::num_css( $v );
 						}
 					}
@@ -893,7 +1035,7 @@ class Scss_Sync {
 					$units[ $ctx ]['_background|color'] = self::color_css( $val['color'] );
 				}
 			} elseif ( is_scalar( $val ) && '' !== (string) $val ) {
-				$b = '_flexDirection' === $base ? '_direction' : ( '_gap' === $base ? '_gridGap' : $base );
+				$b                      = '_flexDirection' === $base ? '_direction' : ( '_gap' === $base ? '_gridGap' : $base );
 				$units[ $ctx ][ "$b|" ] = (string) $val;
 			}
 		}
@@ -913,7 +1055,7 @@ class Scss_Sync {
 		foreach ( $remove as $ctx => $keys ) {
 			foreach ( $keys as $uk ) {
 				list( $base, $sub ) = explode( '|', $uk, 2 );
-				$key = $base . $ctx;
+				$key                = $base . $ctx;
 				if ( '' === $sub ) {
 					unset( $settings[ $key ] );
 					if ( '_direction' === $base ) {
@@ -938,7 +1080,7 @@ class Scss_Sync {
 		foreach ( $units as $ctx => $list ) {
 			foreach ( $list as $uk => $v ) {
 				list( $base, $sub ) = explode( '|', $uk, 2 );
-				$key = $base . $ctx;
+				$key                = $base . $ctx;
 				if ( '' === $sub ) {
 					// Fields with their own shape get it back from the CSS.
 					if ( '_boxShadow' === $base ) {
@@ -958,7 +1100,7 @@ class Scss_Sync {
 				if ( ! isset( $settings[ $key ] ) || ! is_array( $settings[ $key ] ) ) {
 					$settings[ $key ] = array();
 				}
-				$path  = explode( '|', $sub );
+				$path = explode( '|', $sub );
 				if ( array( 'text-shadow' ) === $path ) {
 					$a = self::shadow_array( $v, false );
 					if ( null === $a ) {
@@ -974,7 +1116,7 @@ class Scss_Sync {
 						$settings[ $key ][ $path[0] ] = array();
 					}
 					$settings[ $key ][ $path[0] ][ $path[1] ] = $v;
-					unset( $settings[ $key ][ $path[0] ]['unit'][ $path[1] ] ); // the value carries its unit
+					unset( $settings[ $key ][ $path[0] ]['unit'][ $path[1] ] ); // the value carries its unit.
 				} else {
 					$settings[ $key ][ $path[0] ] = $color ? self::color_setting( $v ) : $v;
 				}
@@ -999,14 +1141,21 @@ class Scss_Sync {
 				if ( isset( $p['id'], $p['colors'] ) && Bricks::CATEGORY_ID === $p['id'] && is_array( $p['colors'] ) ) {
 					foreach ( $p['colors'] as $c ) {
 						if ( isset( $c['id'], $c['raw'] ) ) {
-							$ids[ $c['raw'] ] = array( 'id' => $c['id'], 'name' => isset( $c['name'] ) ? $c['name'] : '' );
+							$ids[ $c['raw'] ] = array(
+								'id'   => $c['id'],
+								'name' => isset( $c['name'] ) ? $c['name'] : '',
+							);
 						}
 					}
 				}
 			}
 		}
 		$v = (string) $v;
-		return isset( $ids[ $v ] ) ? array( 'id' => $ids[ $v ]['id'], 'name' => $ids[ $v ]['name'], 'raw' => $v ) : array( 'raw' => $v );
+		return isset( $ids[ $v ] ) ? array(
+			'id'   => $ids[ $v ]['id'],
+			'name' => $ids[ $v ]['name'],
+			'raw'  => $v,
+		) : array( 'raw' => $v );
 	}
 
 	/**
@@ -1054,7 +1203,11 @@ class Scss_Sync {
 		if ( '_background' === $base ) {
 			return 'background-color';
 		}
-		$own = array( '_boxShadow' => 'box-shadow', '_cssFilters' => 'filter', '_transform' => 'transform' );
+		$own = array(
+			'_boxShadow'  => 'box-shadow',
+			'_cssFilters' => 'filter',
+			'_transform'  => 'transform',
+		);
 		if ( isset( $own[ $base ] ) ) {
 			return $own[ $base ];
 		}
@@ -1171,7 +1324,12 @@ class Scss_Sync {
 				if ( ! in_array( null, $r, true ) ) {
 					$out[] = 'border-radius: ' . self::box_css( $r );
 				} else {
-					$names = array( 'top' => 'border-top-left-radius', 'right' => 'border-top-right-radius', 'bottom' => 'border-bottom-right-radius', 'left' => 'border-bottom-left-radius' );
+					$names = array(
+						'top'    => 'border-top-left-radius',
+						'right'  => 'border-top-right-radius',
+						'bottom' => 'border-bottom-right-radius',
+						'left'   => 'border-bottom-left-radius',
+					);
 					foreach ( self::SIDES as $i => $s ) {
 						if ( null !== $r[ $i ] ) {
 							$out[] = "{$names[ $s ]}: {$r[ $i ]}";
@@ -1201,7 +1359,11 @@ class Scss_Sync {
 			case 'box-shadow':
 			case 'filter':
 			case 'transform':
-				$k = array( 'box-shadow' => '_boxShadow|', 'filter' => '_cssFilters|', 'transform' => '_transform|' )[ $family ];
+				$k = array(
+					'box-shadow' => '_boxShadow|',
+					'filter'     => '_cssFilters|',
+					'transform'  => '_transform|',
+				)[ $family ];
 				if ( null !== $get( $k ) ) {
 					$out[] = "$family: " . $get( $k );
 				}
@@ -1257,7 +1419,7 @@ class Scss_Sync {
 		if ( '"' === $c || "'" === $c ) {
 			for ( $j = $i + 1; $j < $n; $j++ ) {
 				if ( '\\' === $s[ $j ] ) {
-					$j++;
+					++$j;
 				} elseif ( $s[ $j ] === $c ) {
 					return $j + 1;
 				}
@@ -1268,7 +1430,7 @@ class Scss_Sync {
 			$d = 0;
 			for ( $j = $i + 1; $j < $n; $j++ ) {
 				if ( '{' === $s[ $j ] ) {
-					$d++;
+					++$d;
 				} elseif ( '}' === $s[ $j ] && 0 === --$d ) {
 					return $j + 1;
 				}
@@ -1299,27 +1461,45 @@ class Scss_Sync {
 			}
 			$c = $s[ $i ];
 			if ( '(' === $c ) {
-				$paren++;
+				++$paren;
 			} elseif ( ')' === $c ) {
 				$paren = max( 0, $paren - 1 );
 			} elseif ( '{' === $c && 0 === $paren ) {
-				$close = self::match( $s, $i, $to );
-				$items[] = array( 'type' => 'block', 'start' => self::content_start( $s, $start, $i ), 'end' => $close + 1, 'header' => trim( self::strip_comments( substr( $s, $start, $i - $start ) ) ), 'open' => $i, 'close' => $close );
-				$i     = $close + 1;
-				$start = $i;
+				$close   = self::match( $s, $i, $to );
+				$items[] = array(
+					'type'   => 'block',
+					'start'  => self::content_start( $s, $start, $i ),
+					'end'    => $close + 1,
+					'header' => trim( self::strip_comments( substr( $s, $start, $i - $start ) ) ),
+					'open'   => $i,
+					'close'  => $close,
+				);
+				$i       = $close + 1;
+				$start   = $i;
 				continue;
 			} elseif ( ';' === $c && 0 === $paren ) {
 				$text = self::strip_comments( substr( $s, $start, $i - $start ) );
 				if ( '' !== trim( $text ) ) {
-					$items[] = array( 'type' => 'stmt', 'start' => self::content_start( $s, $start, $i ), 'end' => $i + 1, 'text' => trim( $text ) );
+					$items[] = array(
+						'type'  => 'stmt',
+						'start' => self::content_start( $s, $start, $i ),
+						'end'   => $i + 1,
+						'text'  => trim( $text ),
+					);
 				}
 				$start = $i + 1;
 			}
-			$i++;
+			++$i;
 		}
 		$tail = self::strip_comments( substr( $s, $start, $to - $start ) );
 		if ( '' !== trim( $tail ) ) {
-			$items[] = array( 'type' => 'stmt', 'start' => self::content_start( $s, $start, $to ), 'end' => $to, 'text' => trim( $tail ), 'open_end' => true );
+			$items[] = array(
+				'type'     => 'stmt',
+				'start'    => self::content_start( $s, $start, $to ),
+				'end'      => $to,
+				'text'     => trim( $tail ),
+				'open_end' => true,
+			);
 		}
 		return $items;
 	}
@@ -1333,7 +1513,7 @@ class Scss_Sync {
 	 * @return int
 	 */
 	private static function match( $s, $open, $to ) {
-		$d = 0;
+		$d     = 0;
 		$paren = 0;
 		for ( $i = $open; $i < $to; ) {
 			$k = self::skip( $s, $i, $paren );
@@ -1343,15 +1523,15 @@ class Scss_Sync {
 			}
 			$c = $s[ $i ];
 			if ( '(' === $c ) {
-				$paren++;
+				++$paren;
 			} elseif ( ')' === $c ) {
 				$paren = max( 0, $paren - 1 );
 			} elseif ( '{' === $c ) {
-				$d++;
+				++$d;
 			} elseif ( '}' === $c && 0 === --$d ) {
 				return $i;
 			}
-			$i++;
+			++$i;
 		}
 		return $to - 1;
 	}
@@ -1368,7 +1548,7 @@ class Scss_Sync {
 		$i = $from;
 		while ( $i < $to ) {
 			if ( ctype_space( $s[ $i ] ) ) {
-				$i++;
+				++$i;
 				continue;
 			}
 			$k = self::skip( $s, $i );
@@ -1429,7 +1609,7 @@ class Scss_Sync {
 	 */
 	private static function bp_header( $bp ) {
 		list( $bps, $mobile_first ) = self::breakpoints();
-		$width = array_search( $bp, $bps, true );
+		$width                      = array_search( $bp, $bps, true );
 		foreach ( Scss::breakpoints() as $name => $px ) {
 			if ( (int) $px === (int) $width ) {
 				return ( $mobile_first ? '@include breakpoint-up(' : '@include breakpoint(' ) . $name . ')';
@@ -1447,7 +1627,7 @@ class Scss_Sync {
 	 */
 	private static function header_is_bp( $header, $bp ) {
 		list( $bps, $mobile_first ) = self::breakpoints();
-		$width = (int) array_search( $bp, $bps, true );
+		$width                      = (int) array_search( $bp, $bps, true );
 		if ( preg_match( '/^@include\s+breakpoint(-up)?\(\s*([\w-]+)\s*\)$/', $header, $m ) ) {
 			$tf = Scss::breakpoints();
 			return ( '' !== $m[1] ) === $mobile_first && isset( $tf[ $m[2] ] ) && (int) $tf[ $m[2] ] === $width;
@@ -1470,8 +1650,8 @@ class Scss_Sync {
 	 */
 	public static function write_context( $src, $block, $ctx, $families, $units ) {
 		list( $bps ) = self::breakpoints();
-		$bp     = '';
-		$pseudo = $ctx;
+		$bp          = '';
+		$pseudo      = $ctx;
 		if ( preg_match( '/^:([a-z_]+)(.*)$/i', $ctx, $m ) && in_array( $m[1], $bps, true ) ) {
 			$bp     = $m[1];
 			$pseudo = $m[2];
@@ -1490,7 +1670,7 @@ class Scss_Sync {
 			$found  = self::find_child( $src, $target, $level, $piece );
 			if ( ! $found ) {
 				if ( ! $lines ) {
-					return $src; // nothing to write, nothing to remove
+					return $src; // nothing to write, nothing to remove.
 				}
 				$pind   = self::indent_at( $src, $target[0] );
 				$before = rtrim( substr( $src, 0, $target[1] ) );
@@ -1522,7 +1702,7 @@ class Scss_Sync {
 					}
 				}
 				if ( 'background' === $prop && preg_match( '/url\(|gradient\(/i', $it['text'] ) ) {
-					$hit = false; // a background image stays
+					$hit = false; // a background image stays.
 				}
 				if ( $hit ) {
 					$remove[] = $it;
@@ -1572,7 +1752,13 @@ class Scss_Sync {
 			$edits[] = array( $s, $e, '' );
 		}
 		$edits[] = array( $at, $at, $text );
-		usort( $edits, function ( $a, $b ) { return $b[0] - $a[0] ?: $b[1] - $a[1]; } );
+		usort(
+			$edits,
+			function ( $a, $b ) {
+				$d = $b[0] - $a[0];
+				return $d ? $d : $b[1] - $a[1];
+			}
+		);
 		foreach ( $edits as $e ) {
 			$src = substr( $src, 0, $e[0] ) . $e[2] . substr( $src, $e[1] );
 		}
@@ -1645,7 +1831,7 @@ class Scss_Sync {
 		$out = array();
 		foreach ( self::items( $src, $from, $to ) as $it ) {
 			if ( 'block' === $it['type'] ) {
-				$out   = array_merge( $out, self::nested_blocks( $src, $it['open'] + 1, $it['close'] ), array( $it ) );
+				$out = array_merge( $out, self::nested_blocks( $src, $it['open'] + 1, $it['close'] ), array( $it ) );
 			}
 		}
 		return $out;
@@ -1675,7 +1861,12 @@ class Scss_Sync {
 			}
 		};
 		$walk( 0, strlen( $block ) );
-		usort( $cuts, function ( $a, $b ) { return $b[0] - $a[0]; } );
+		usort(
+			$cuts,
+			function ( $a, $b ) {
+				return $b[0] - $a[0];
+			}
+		);
 		foreach ( $cuts as $c ) {
 			$block = substr( $block, 0, $c[0] ) . substr( $block, $c[1] );
 		}
@@ -1723,9 +1914,15 @@ class Scss_Sync {
 				$min = null === $min ? strlen( $m[0] ) : min( $min, strlen( $m[0] ) );
 			}
 		}
-		return implode( "\n", array_map( function ( $l ) use ( $min ) {
-			return rtrim( (string) substr( $l, (int) $min ) );
-		}, $lines ) );
+		return implode(
+			"\n",
+			array_map(
+				function ( $l ) use ( $min ) {
+					return rtrim( (string) substr( $l, (int) $min ) );
+				},
+				$lines
+			)
+		);
 	}
 
 	/**
@@ -1754,10 +1951,16 @@ class Scss_Sync {
 				$sel  = $h;
 				$body = str_replace( '&', '%root%', $body );
 			} else {
-				$sel = implode( ', ', array_map( function ( $x ) {
-					$x = trim( $x );
-					return false !== strpos( $x, '&' ) ? str_replace( '&', '%root%', $x ) : '%root% ' . $x;
-				}, self::split( $h, ',' ) ) );
+				$sel = implode(
+					', ',
+					array_map(
+						function ( $x ) {
+							$x = trim( $x );
+							return false !== strpos( $x, '&' ) ? str_replace( '&', '%root%', $x ) : '%root% ' . $x;
+						},
+						self::split( $h, ',' )
+					)
+				);
 			}
 			$out[] = $sel . ' {' . rtrim( $body ) . ( false !== strpos( $body, "\n" ) ? "\n" : ' ' ) . '}';
 		}
@@ -1779,7 +1982,7 @@ class Scss_Sync {
 		$out = array();
 		foreach ( self::items( $css, 0, strlen( $css ) ) as $it ) {
 			if ( 'block' !== $it['type'] ) {
-				continue; // a declaration without a selector does nothing in Custom CSS
+				continue; // a declaration without a selector does nothing in Custom CSS.
 			}
 			$h    = $it['header'];
 			$body = substr( $css, $it['open'] + 1, $it['close'] - $it['open'] - 1 );
@@ -1805,7 +2008,8 @@ class Scss_Sync {
 	 * @return string
 	 */
 	private static function write_custom( $src, $block, $css ) {
-		return self::write_region( $src, $block, '' === trim( (string) $css ) ? '' : self::custom_to_scss( $css ) );
+		$text = trim( (string) $css );
+		return self::write_region( $src, $block, '' === $text ? '' : self::custom_to_scss( $css ) );
 	}
 
 	/**
@@ -1817,14 +2021,20 @@ class Scss_Sync {
 	 * @return string
 	 */
 	private static function write_region( $src, $block, $scss ) {
-		$outer  = self::indent_at( $src, $block['open'] );
-		$ind    = $outer . "\t";
-		$scss   = rtrim( trim( (string) $scss, "\n" ) );
-		$text   = '';
+		$outer = self::indent_at( $src, $block['open'] );
+		$ind   = $outer . "\t";
+		$scss  = rtrim( trim( (string) $scss, "\n" ) );
+		$text  = '';
 		if ( '' !== trim( $scss ) ) {
-			$body = implode( "\n", array_map( function ( $l ) use ( $ind ) {
-				return '' === trim( $l ) ? '' : $ind . $l;
-			}, explode( "\n", $scss ) ) );
+			$body = implode(
+				"\n",
+				array_map(
+					function ( $l ) use ( $ind ) {
+						return '' === trim( $l ) ? '' : $ind . $l;
+					},
+					explode( "\n", $scss )
+				)
+			);
 			$text = $ind . self::CUSTOM_OPEN . "\n" . $body . "\n" . $ind . self::CUSTOM_CLOSE;
 		}
 		$region = self::custom_region( $src, $block );
@@ -1832,7 +2042,7 @@ class Scss_Sync {
 			$s  = $region[0];
 			$ls = strrpos( substr( $src, 0, $s ), "\n" );
 			if ( false !== $ls && '' === trim( substr( $src, $ls + 1, $s - $ls - 1 ) ) ) {
-				$s = '' === $text ? $ls : $ls + 1; // the whole line
+				$s = '' === $text ? $ls : $ls + 1; // the whole line.
 			}
 			return substr( $src, 0, $s ) . $text . substr( $src, $region[1] );
 		}
@@ -1906,10 +2116,10 @@ class Scss_Sync {
 	 * @return array [ 'units' => flat units, 'extras' => builder CSS ('' for none) ]
 	 */
 	public static function builder_view( $settings, $name ) {
-		$settings = is_array( $settings ) ? $settings : array();
-		$units    = self::flat( self::settings_to_units( $settings ) );
+		$settings                   = is_array( $settings ) ? $settings : array();
+		$units                      = self::flat( self::settings_to_units( $settings ) );
 		list( $bps, $mobile_first ) = self::breakpoints();
-		$extras = array();
+		$extras                     = array();
 		ksort( $settings ); // "_cssCustom" before its breakpoint versions
 		foreach ( $settings as $key => $css ) {
 			if ( ! is_string( $css ) || '' === trim( $css ) || ! preg_match( '/^_cssCustom(:.*)?$/', (string) $key, $km ) ) {
@@ -1926,7 +2136,7 @@ class Scss_Sync {
 			$keep = array();
 			foreach ( self::items( $text, 0, strlen( $text ) ) as $it ) {
 				if ( 'block' !== $it['type'] ) {
-					continue; // a declaration outside a rule does nothing in the CSS panel
+					continue; // a declaration outside a rule does nothing in the CSS panel.
 				}
 				$body  = substr( $text, $it['open'] + 1, $it['close'] - $it['open'] - 1 );
 				$state = self::root_state( $it['header'], $name );
@@ -1934,8 +2144,8 @@ class Scss_Sync {
 					$keep[] = self::root_header( $it['header'], $name ) . ' {' . rtrim( $body ) . "\n}";
 					continue;
 				}
-				$uctx = $bp . $pseudo . $state;
-				$disp = isset( $units[ $uctx . '#_display|' ] ) ? $units[ $uctx . '#_display|' ] : ( isset( $units[ $bp . '#_display|' ] ) ? $units[ $bp . '#_display|' ] : ( isset( $units['#_display|'] ) ? $units['#_display|'] : '' ) );
+				$uctx  = $bp . $pseudo . $state;
+				$disp  = isset( $units[ $uctx . '#_display|' ] ) ? $units[ $uctx . '#_display|' ] : ( isset( $units[ $bp . '#_display|' ] ) ? $units[ $bp . '#_display|' ] : ( isset( $units['#_display|'] ) ? $units['#_display|'] : '' ) );
 				$decls = self::css_decls( $body );
 				foreach ( $decls as $d ) {
 					if ( 'display' === $d[0] && ! $d[2] ) {
@@ -1947,7 +2157,7 @@ class Scss_Sync {
 				foreach ( $decls as $d ) {
 					list( $prop, $value, $imp ) = $d;
 					if ( $grid && 'align-items' === $prop && 'initial' === strtolower( $value ) ) {
-						continue; // written by the builder for a grid, not by you
+						continue; // written by the builder for a grid, not by you.
 					}
 					$mapped = ( $imp || 0 === strpos( $prop, '--' ) ) ? array() : self::map_decl( $prop, $value, $grid );
 					if ( $mapped ) {
@@ -1972,7 +2182,10 @@ class Scss_Sync {
 			}
 			$extras[] = $chunk;
 		}
-		return array( 'units' => $units, 'extras' => trim( implode( "\n", $extras ) ) );
+		return array(
+			'units'  => $units,
+			'extras' => trim( implode( "\n", $extras ) ),
+		);
 	}
 
 	/**
@@ -2066,13 +2279,13 @@ class Scss_Sync {
 	 * → the SCSS you are editing. Nothing is stored.
 	 *
 	 * @param string $src  The SCSS in the editor.
-	 * @param array  $list [ { name, settings, old } ] (old = the settings before the change).
+	 * @param array  $items [ { name, settings, old } ] (old = the settings before the change).
 	 * @return string
 	 */
-	public static function live_pull( $src, $list ) {
+	public static function live_pull( $src, $items ) {
 		$opts   = tokenforge_crucible_sync_settings();
 		$blocks = self::class_blocks( $src );
-		foreach ( (array) $list as $c ) {
+		foreach ( (array) $items as $c ) {
 			$name = isset( $c['name'] ) ? (string) $c['name'] : '';
 			if ( '' === $name || ! preg_match( '/^-?[_a-zA-Z][\w-]*$/', $name ) ) {
 				continue;
@@ -2080,19 +2293,22 @@ class Scss_Sync {
 			$settings = isset( $c['settings'] ) && is_array( $c['settings'] ) ? $c['settings'] : array();
 			foreach ( $settings as $k => $v ) {
 				if ( is_string( $v ) && preg_match( '/^_cssCustom(:|$)/', (string) $k ) && substr_count( $v, '{' ) !== substr_count( $v, '}' ) ) {
-					continue 2; // still being typed (the builder itself drops such CSS on save)
+					continue 2; // still being typed (the builder itself drops such CSS on save).
 				}
 			}
 			$new = self::builder_view( $settings, $name );
 			$old = self::builder_view( isset( $c['old'] ) && is_array( $c['old'] ) ? $c['old'] : array(), $name );
 			if ( $new['units'] === $old['units'] && self::canon_css( $new['extras'] ) === self::canon_css( $old['extras'] ) ) {
-				continue; // the builder only rewrote its CSS panel from the fields
+				continue; // the builder only rewrote its CSS panel from the fields.
 			}
 			if ( ! isset( $blocks[ $name ] ) ) {
 				if ( empty( $opts['sync_pull'] ) ) {
 					continue;
 				}
-				$old = array( 'units' => array(), 'extras' => '' ); // a new block gets the whole class
+				$old = array(
+					'units'  => array(),
+					'extras' => '',
+				); // a new block gets the whole class.
 			}
 			list( $src ) = self::builder_into_block( $src, $name, $new, $old['units'] );
 			$blocks      = self::class_blocks( $src );
@@ -2109,17 +2325,17 @@ class Scss_Sync {
 	public static function plain_css( $t ) {
 		$t = self::strip_comments( (string) $t );
 		if ( preg_match( '/\$|#\{|@|!default|!global|(^|[\s,(])%[\w-]/', $t ) ) {
-			return false; // variables, interpolation, at-rules and mixins, placeholders
+			return false; // variables, interpolation, at-rules and mixins, placeholders.
 		}
 		if ( preg_match_all( '/(?<![\w-])([a-zA-Z_][\w-]*)\s*\(/', $t, $m ) ) {
 			foreach ( $m[1] as $fn ) {
 				$fn = preg_replace( '/^-(webkit|moz|ms|o)-/', '', strtolower( $fn ) );
 				if ( ! in_array( $fn, self::CSS_FUNCTIONS, true ) ) {
-					return false; // an SCSS function (darken, math.div, if …)
+					return false; // an SCSS function (darken, math.div, if …).
 				}
 			}
 		}
-		return ! preg_match( '/(?<![\w-])[\w-]+\.[a-zA-Z_][\w-]*\s*\(/', $t ); // module functions (color.adjust)
+		return ! preg_match( '/(?<![\w-])[\w-]+\.[a-zA-Z_][\w-]*\s*\(/', $t ); // module functions (color.adjust).
 	}
 
 	/**
@@ -2153,7 +2369,7 @@ class Scss_Sync {
 		$move = array();
 		foreach ( $items as $it ) {
 			if ( $region && $it['start'] >= $region[0] && $it['start'] < $region[1] ) {
-				continue; // already in the Custom CSS part
+				continue; // already in the Custom CSS part.
 			}
 			if ( 'stmt' === $it['type'] ) {
 				$t = rtrim( trim( $it['text'] ), ';' );
@@ -2168,14 +2384,14 @@ class Scss_Sync {
 					continue;
 				}
 				if ( ! $imp && 0 !== strpos( $prop, '--' ) && self::map_decl( $prop, $value, $grid ) ) {
-					continue; // the builder has a field for it
+					continue; // the builder has a field for it.
 				}
 				$move[] = array( $it['start'], $it['end'], $prop . ': ' . $value . ';' );
 				continue;
 			}
 			$h = $it['header'];
 			if ( '' === $h || '@' === $h[0] || ':' === substr( $h, -1 ) || preg_match( '/&(?=[\w-])/', $h ) || ! self::plain_css( $h ) ) {
-				continue; // @ blocks, nested properties ("font: { … }"), "&__part" / "&-modifier"
+				continue; // Skip at-rules, nested properties and &__part or &-modifier selectors.
 			}
 			$states = true;
 			foreach ( self::split( $h, ',' ) as $part ) {
@@ -2208,7 +2424,7 @@ class Scss_Sync {
 		// Cut from the end so earlier positions stay valid; a line left empty goes too.
 		foreach ( array_reverse( $move ) as $mv ) {
 			list( $s, $e ) = $mv;
-			$ls = strrpos( substr( $src, 0, $s ), "\n" );
+			$ls            = strrpos( substr( $src, 0, $s ), "\n" );
 			if ( false !== $ls && '' === trim( substr( $src, $ls + 1, $s - $ls - 1 ) ) ) {
 				$le = strpos( $src, "\n", $e );
 				if ( false !== $le && '' === trim( substr( $src, $e, $le - $e ) ) ) {
@@ -2218,7 +2434,15 @@ class Scss_Sync {
 			}
 			$src = substr( $src, 0, $s ) . substr( $src, $e );
 		}
-		$add = implode( "\n", array_map( function ( $mv ) { return $mv[2]; }, $move ) );
+		$add = implode(
+			"\n",
+			array_map(
+				function ( $mv ) {
+					return $mv[2];
+				},
+				$move
+			)
+		);
 		$now = self::class_blocks( $src );
 		return self::write_region( $src, $now[ $name ], ( '' !== trim( $have ) ? $have . "\n" : '' ) . $add );
 	}
@@ -2233,7 +2457,7 @@ class Scss_Sync {
 		$rm = array();
 		foreach ( $flat as $fk ) {
 			list( $ctx, $k ) = explode( '#', $fk, 2 );
-			$rm[ $ctx ][]   = $k;
+			$rm[ $ctx ][]    = $k;
 		}
 		return $rm;
 	}
@@ -2277,7 +2501,7 @@ class Scss_Sync {
 	private static function unflat( $f ) {
 		$out = array();
 		foreach ( $f as $fk => $v ) {
-			list( $ctx, $k ) = explode( '#', $fk, 2 );
+			list( $ctx, $k )   = explode( '#', $fk, 2 );
 			$out[ $ctx ][ $k ] = $v;
 		}
 		return $out;
@@ -2301,13 +2525,18 @@ class Scss_Sync {
 		$by_ctx = array();
 		foreach ( $keys as $fk ) {
 			list( $ctx, $k ) = explode( '#', $fk, 2 );
-			$f = self::family( $k );
+			$f               = self::family( $k );
 			if ( '' !== $f ) {
 				$by_ctx[ $ctx ][ $f ] = true;
 			}
 		}
 		// Base context first, then states and breakpoints.
-		uksort( $by_ctx, function ( $a, $b ) { return strlen( $a ) - strlen( $b ); } );
+		uksort(
+			$by_ctx,
+			function ( $a, $b ) {
+				return strlen( $a ) - strlen( $b );
+			}
+		);
 		foreach ( $by_ctx as $ctx => $fams ) {
 			$blocks = self::class_blocks( $src );
 			$src    = self::write_context( $src, $blocks[ $name ], $ctx, array_keys( $fams ), isset( $units[ $ctx ] ) ? $units[ $ctx ] : array() );
@@ -2331,7 +2560,11 @@ class Scss_Sync {
 	 */
 	public static function push( $args = array() ) {
 		$dry    = ! empty( $args['dry'] );
-		$result = array( 'classes' => array(), 'source_changed' => false, 'errors' => array() );
+		$result = array(
+			'classes'        => array(),
+			'source_changed' => false,
+			'errors'         => array(),
+		);
 		if ( ! self::enabled() || ( self::$busy && ! $dry ) ) {
 			return $result;
 		}
@@ -2364,7 +2597,11 @@ class Scss_Sync {
 				if ( $dry || empty( $opts['sync_create'] ) ) {
 					continue;
 				}
-				$classes[]      = array( 'id' => strtolower( substr( str_shuffle( 'abcdefghijklmnopqrstuvwxyz' ), 0, 6 ) ), 'name' => $name, 'settings' => array() );
+				$classes[]      = array(
+					'id'       => strtolower( substr( str_shuffle( 'abcdefghijklmnopqrstuvwxyz' ), 0, 6 ) ),
+					'name'     => $name,
+					'settings' => array(),
+				);
 				$index[ $name ] = count( $classes ) - 1;
 			}
 			$i        = $index[ $name ];
@@ -2435,12 +2672,19 @@ class Scss_Sync {
 			$new = self::link_palette_colors( $new );
 			if ( $new !== $settings ) {
 				$classes[ $i ]['settings'] = $new;
-				$result['classes'][]       = array( 'id' => $classes[ $i ]['id'], 'name' => $name, 'settings' => $new );
+				$result['classes'][]       = array(
+					'id'       => $classes[ $i ]['id'],
+					'name'     => $name,
+					'settings' => $new,
+				);
 				$changed                   = true;
 			}
 			if ( ! $dry ) {
 				$keep_before               = isset( $state['classes'][ $name ]['before'] ) ? $state['classes'][ $name ]['before'] : $view['units'];
-				$state['classes'][ $name ] = array( 'units' => $scss, 'before' => $differs ? $view['units'] : $keep_before );
+				$state['classes'][ $name ] = array(
+					'units'  => $scss,
+					'before' => $differs ? $view['units'] : $keep_before,
+				);
 				$state['custom'][ $name ]  = $want;
 			}
 		}
@@ -2470,16 +2714,25 @@ class Scss_Sync {
 	private static function block_units( $src, $name ) {
 		$blocks = self::class_blocks( $src );
 		if ( ! isset( $blocks[ $name ] ) ) {
-			return array( 'units' => array(), 'error' => null );
+			return array(
+				'units' => array(),
+				'error' => null,
+			);
 		}
 		$b    = $blocks[ $name ];
 		$text = substr( $src, $b['start'], $b['end'] - $b['start'] );
 		$text = (string) preg_replace( '#' . preg_quote( self::CUSTOM_OPEN, '#' ) . '.*?' . preg_quote( self::CUSTOM_CLOSE, '#' ) . '#s', '', $text );
 		$r    = Scss::compile( self::without_includes( $text ) );
 		if ( null !== $r['error'] ) {
-			return array( 'units' => array(), 'error' => $r['error']['message'] );
+			return array(
+				'units' => array(),
+				'error' => $r['error']['message'],
+			);
 		}
-		return array( 'units' => self::flat( self::css_to_units( $r['css'], $name ) ), 'error' => null );
+		return array(
+			'units' => self::flat( self::css_to_units( $r['css'], $name ) ),
+			'error' => null,
+		);
 	}
 
 	/**
@@ -2487,11 +2740,11 @@ class Scss_Sync {
 	 * its CSS panel, where the CSS panel wins) goes into that class's block.
 	 *
 	 * @param mixed $old Old classes.
-	 * @param mixed $new New classes.
+	 * @param mixed $new_classes New classes.
 	 * @return void
 	 */
-	public static function on_classes_saved( $old, $new ) {
-		if ( self::$busy || ! self::enabled() || ! is_array( $new ) ) {
+	public static function on_classes_saved( $old, $new_classes ) {
+		if ( self::$busy || ! self::enabled() || ! is_array( $new_classes ) ) {
 			return;
 		}
 		$opts   = tokenforge_crucible_sync_settings();
@@ -2514,7 +2767,7 @@ class Scss_Sync {
 				$old_names[ $c['id'] ] = (string) $c['name'];
 			}
 		}
-		foreach ( $new as $c ) {
+		foreach ( $new_classes as $c ) {
 			$id   = isset( $c['id'] ) ? (string) $c['id'] : '';
 			$name = isset( $c['name'] ) ? (string) $c['name'] : '';
 			if ( '' === $id || '' === $name || ! isset( $old_names[ $id ] ) || $old_names[ $id ] === $name ) {
@@ -2536,7 +2789,7 @@ class Scss_Sync {
 				$touched = true;
 			}
 		}
-		foreach ( $new as $idx => $c ) {
+		foreach ( $new_classes as $idx => $c ) {
 			$name = isset( $c['name'] ) ? (string) $c['name'] : '';
 			if ( '' === $name ) {
 				continue;
@@ -2550,8 +2803,11 @@ class Scss_Sync {
 				if ( empty( $opts['sync_pull'] ) || ( $view['units'] === $before['units'] && self::canon_css( $view['extras'] ) === self::canon_css( $before['extras'] ) ) || ( ! $view['units'] && '' === $view['extras'] ) ) {
 					continue;
 				}
-				list( $src, $now ) = self::builder_into_block( $src, $name, $view, array() );
-				$state['classes'][ $name ] = array( 'units' => $now, 'before' => $now );
+				list( $src, $now )         = self::builder_into_block( $src, $name, $view, array() );
+				$state['classes'][ $name ] = array(
+					'units'  => $now,
+					'before' => $now,
+				);
 				$state['custom'][ $name ]  = self::region_css( $src, $name );
 				$blocks                    = self::class_blocks( $src );
 				$touched                   = true;
@@ -2599,7 +2855,10 @@ class Scss_Sync {
 			}
 			list( $src, $now, $changed ) = self::builder_into_block( $src, $name, $view, $last );
 			if ( $changed ) {
-				$state['classes'][ $name ] = array( 'units' => $now, 'before' => $before );
+				$state['classes'][ $name ] = array(
+					'units'  => $now,
+					'before' => $before,
+				);
 				$state['custom'][ $name ]  = self::region_css( $src, $name );
 				$blocks                    = self::class_blocks( $src );
 				$touched                   = true;
