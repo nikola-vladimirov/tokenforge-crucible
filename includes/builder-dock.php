@@ -34,6 +34,7 @@ function tokenforge_crucible_dock_enqueue() {
 		'TokenForgeDockCfg',
 		array(
 			'restUrl'  => esc_url_raw( rest_url( 'tokenforge-crucible/v1' ) ),
+			'tfRest'   => esc_url_raw( rest_url( 'tokenforge/v1' ) ),
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
 			'shortcut' => 'alt+shift+s',
 			'tab'      => true,

@@ -36,7 +36,7 @@
 	}
 
 	function api( path, method, body ) {
-		return fetch( cfg.restUrl + path, {
+		return fetch( ( '/menu-data' === path ? cfg.tfRest : cfg.restUrl ) + path, {
 			method: method || 'GET',
 			credentials: 'same-origin',
 			cache: 'no-store',

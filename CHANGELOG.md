@@ -2,6 +2,10 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.1
+
+- Fixes the variables and classes list in the builder SCSS dock, which could stay empty.
+
 ## 0.3.0
 
 - Global SCSS and your recipes are part of Export / Import and of the Reset to defaults panel, in the 0.53.7 file format.
