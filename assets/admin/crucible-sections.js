@@ -257,7 +257,8 @@
 	} );
 
 	hooks.addFilter( 'tokenforge.icons', 'tokenforge-crucible', function ( icons ) {
-		icons[ ID ] = '<path d="M8 6 3 12l5 6M16 6l5 6-5 6M14 4l-4 16"/>';
+		// The Crucible icon (assets/admin/crucible-icon.svg, 20 px grid) drawn in the nav's 24 px box.
+		icons[ ID ] = '<g transform="scale(1.2)" fill="currentColor" stroke="none"><rect x="2" y="2.5" width="16" height="2.5" rx="1.2"/><path d="M3.5 6.5h13l-2 10.5a1.2 1.2 0 0 1-1.2 1H6.7a1.2 1.2 0 0 1-1.2-1z" opacity=".35"/><rect x="5.5" y="8" width="4" height="3.4" rx="1"/><rect x="10.5" y="8" width="4" height="3.4" rx="1" opacity=".7"/><rect x="7.5" y="12.4" width="5" height="2.6" rx="1" opacity=".5"/></g>';
 		return icons;
 	} );
 

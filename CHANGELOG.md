@@ -2,6 +2,10 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.3
+
+- The Global SCSS entry in the TokenForge dashboard has the Crucible icon.
+
 ## 0.3.2
 
 - The builder Global SCSS dock shows the outline bar (Jump to, # Section, ## Sub-section) correctly in the Bricks builder.
