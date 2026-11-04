@@ -45,6 +45,11 @@
 #tf-sdock .tf-sdock-btn.is-on { background: var(--sd-accent); color: var(--sd-accent-ink); }
 #tf-sdock .tf-sdock-save { background: var(--sd-accent); color: var(--sd-accent-ink); padding: 0 12px; }
 #tf-sdock .tf-sdock-save:hover { filter: brightness(1.08); background: var(--sd-accent); }
+/* Bottom dock: the status gets its own row under the title and actions, so a compile error can be read */
+#tf-sdock:not(.is-left):not(.is-right):not(.is-min) .tf-sdock-head { flex-wrap: wrap; height: auto; min-height: 36px; flex: 0 0 auto; row-gap: 0; padding-block: 6px; }
+#tf-sdock:not(.is-left):not(.is-right):not(.is-min) .tf-sdock-status { order: 3; flex: 1 1 100%; white-space: pre-wrap; max-height: 54px; overflow: auto; padding-inline: 6px; }
+#tf-sdock:not(.is-left):not(.is-right):not(.is-min) .tf-sdock-status:not(:empty) { padding-top: 4px; }
+#tf-sdock:not(.is-left):not(.is-right):not(.is-min) .tf-sdock-title { margin-right: auto; }
 #tf-sdock.is-min .tf-sdock-minbtn svg { transform: scaleY(-1); }
 #tf-sdock.is-min .tf-sdock-live, #tf-sdock.is-min .tf-sdock-cheatbtn { display: none; }
 
@@ -62,8 +67,27 @@
 /* Outline bar (Jump to, Add section) as a slim row on top of the editor, in every dock position; narrow docks keep only the # and ## marks on the add buttons */
 #tf-sdock .tf-sdock-editor { padding-top: 32px; }
 #tf-sdock .tf-ol-bar { --ol-bg: var(--sd-bg-2); --ol-bg-2: var(--sd-bg-3); --ol-hover: var(--sd-bg-4); --ol-line: var(--sd-line); --ol-text: var(--sd-text); --ol-muted: var(--sd-muted); --ol-accent: var(--sd-accent); --ol-accent-ink: var(--sd-accent-ink); --ol-radius: var(--sd-radius); position: absolute; top: 0; left: 0; right: 0; z-index: 5; height: 32px; padding: 0 6px; background: var(--sd-bg-2); border-bottom: 1px solid var(--sd-line); }
-#tf-sdock .tf-ol-bar button { height: 24px; }
-#tf-sdock .tf-ol-bar .tf-ol-jump { max-width: none; }
+/* The builder does not load crucible-admin.css, so the bar's base rules are repeated here under #tf-sdock (the admin screen keeps its own copy) */
+#tf-sdock .tf-ol-bar { display: flex; align-items: center; gap: 4px; min-width: 0; font: 12px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+#tf-sdock .tf-ol-bar button { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: var(--ol-radius); background: var(--ol-bg-2); color: var(--ol-text); font: 600 12px/1 system-ui, -apple-system, "Segoe UI", sans-serif; white-space: nowrap; cursor: pointer; }
+#tf-sdock .tf-ol-bar button:hover { background: var(--ol-hover); }
+#tf-sdock .tf-ol-bar button:focus-visible, #tf-sdock .tf-ol-bar .tf-ol-q:focus-visible { outline: 2px solid var(--ol-accent); outline-offset: 1px; }
+#tf-sdock .tf-ol-bar .tf-ol-jump { flex: 1 1 auto; min-width: 0; max-width: none; justify-content: space-between; }
+#tf-sdock .tf-ol-cur { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#tf-sdock .tf-ol-caret { flex: 0 0 auto; width: 0; height: 0; border: 4px solid transparent; border-top-color: currentColor; border-bottom-width: 0; }
+#tf-sdock .tf-ol-add i { font: 700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ol-accent); }
+#tf-sdock .tf-ol-menu { position: absolute; z-index: 50; top: calc(100% + 4px); left: 0; display: flex; flex-direction: column; width: min(380px, 100%); max-height: 300px; padding: 6px; background: var(--ol-bg); border: 1px solid var(--ol-line); border-radius: var(--ol-radius); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); }
+#tf-sdock .tf-ol-menu[hidden], #tf-sdock .tf-ol-none[hidden] { display: none; }
+#tf-sdock .tf-ol-bar .tf-ol-q { all: unset; box-sizing: border-box; flex: 0 0 auto; width: 100%; height: 28px; padding: 0 8px; border: 1px solid var(--ol-line); border-radius: var(--ol-radius); background: var(--ol-bg-2); color: var(--ol-text); font: 12px/1 system-ui, -apple-system, "Segoe UI", sans-serif; }
+#tf-sdock .tf-ol-list { margin: 6px 0 0; padding: 0; list-style: none; min-height: 0; overflow: auto; }
+#tf-sdock .tf-ol-list li { display: flex; align-items: baseline; gap: 6px; margin: 0; padding: 4px 8px 4px calc(8px + var(--d, 0) * 14px); border-radius: var(--ol-radius); color: var(--ol-text); cursor: pointer; }
+#tf-sdock .tf-ol-list li i { flex: 0 0 auto; font: normal 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ol-muted); }
+#tf-sdock .tf-ol-list li span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tf-sdock .tf-ol-list li em { flex: 0 0 auto; font-style: normal; font-size: 11px; color: var(--ol-muted); }
+#tf-sdock .tf-ol-list li:hover, #tf-sdock .tf-ol-list li.is-sel { background: var(--ol-accent); color: var(--ol-accent-ink); }
+#tf-sdock .tf-ol-list li:hover i, #tf-sdock .tf-ol-list li:hover em, #tf-sdock .tf-ol-list li.is-sel i, #tf-sdock .tf-ol-list li.is-sel em { color: inherit; }
+#tf-sdock .tf-ol-none { margin: 8px 4px 2px; color: var(--ol-muted); }
+#tf-sdock .tf-ol-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #tf-sdock.is-left .tf-ol-t, #tf-sdock.is-right .tf-ol-t { display: none; }
 #tf-sdock .tf-sdock-editor .CodeMirror { flex: 1 1 auto; height: 100% !important; background: var(--sd-bg); color: var(--sd-text); font-family: var(--sd-mono); font-size: 13px; }
 

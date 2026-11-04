@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,10 @@ Developed by Prista Digital, https://pristadigital.com
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.3.2 =
+* The builder Global SCSS dock shows the outline bar correctly in the Bricks builder, and the compile error and save status show on their own row, also when the dock is minimised.
+* The plugin zip leaves out .gitignore and .gitattributes, so the release passes Plugin Check's hidden files check.
 
 = 0.3.1 =
 * Fixes the variables and classes list in the builder SCSS dock, which could stay empty.

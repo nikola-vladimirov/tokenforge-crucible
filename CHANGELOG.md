@@ -2,6 +2,13 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.2
+
+- The builder Global SCSS dock shows the outline bar (Jump to, # Section, ## Sub-section) correctly in the Bricks builder.
+- The compile error and save status now show in the bottom dock on their own row.
+- The status stays visible when the dock is minimised.
+- The plugin zip now leaves out .gitignore and .gitattributes, so the release passes Plugin Check's hidden files check.
+
 ## 0.3.1
 
 - Fixes the variables and classes list in the builder SCSS dock, which could stay empty.
