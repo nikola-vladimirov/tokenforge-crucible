@@ -2,6 +2,11 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.4
+
+- Updates from GitHub: new releases show in Dashboard > Updates and on the Plugins screen like any other plugin update, auto-updates included. Install 0.3.4 by hand once; later versions arrive by themselves.
+- Global SCSS now shows and works in the TokenForge window on the site's pages and in the builder's TokenForge window, not only on the wp-admin dashboard. The section runs inside the window's isolated area (its own styles, switches and editor), and only for users who can open the window.
+
 ## 0.3.3
 
 - The Global SCSS entry in the TokenForge dashboard has the Crucible icon.

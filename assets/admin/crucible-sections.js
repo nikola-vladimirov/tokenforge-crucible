@@ -20,6 +20,22 @@
 	var __ = wp.i18n ? wp.i18n.__ : function ( s ) { return s; };
 	var ID = 'scss';
 	var DRAFT = 'tokenforge-crucible-scss-draft';
+	// The front-end TokenForge window renders the dashboard in a shadow root (#tf-dock-host), which
+	// document queries, non-composed events (change) and a body MutationObserver cannot see.
+	var listeners = [];
+	var shadowBound = null;
+	function rootNode() { var h = document.getElementById( 'tf-dock-host' ); return ( h && h.shadowRoot ) || document; }
+	function q( s ) { return rootNode().querySelector( s ); }
+	function qa( s ) { return rootNode().querySelectorAll( s ); }
+	function on( type, fn ) { listeners.push( [ type, fn ] ); document.addEventListener( type, fn ); }
+	function bindShadow() {
+		var r = rootNode();
+		if ( r === document || r === shadowBound ) { return; }
+		shadowBound = r;
+		listeners.forEach( function ( l ) { r.addEventListener( l[0], l[1] ); } );
+		if ( cfg.css ) { var l = document.createElement( 'link' ); l.rel = 'stylesheet'; l.href = cfg.css; r.appendChild( l ); }
+		new MutationObserver( mountAll ).observe( r, { childList: true, subtree: true } );
+	}
 	var st = { source: '', rev: '', status: {}, ref: [], recipes: [], recipesOn: true, ed: null, loaded: false, enabled: true, closed: {}, quiet: false, sync: true, syncPull: true, syncCreate: false };
 
 	function api( path, method, body ) {
@@ -46,7 +62,7 @@
 	}
 
 	function setStatus( html ) {
-		var el = document.querySelector( '[data-crucible-state]' );
+		var el = q( '[data-crucible-state]' );
 		if ( el ) { el.innerHTML = html; }
 	}
 
@@ -67,7 +83,7 @@
 
 	// Show the recovery box when the browser kept SCSS that is neither saved nor in the editor.
 	function updateLost() {
-		var box = document.querySelector( '[data-crucible-lost]' );
+		var box = q( '[data-crucible-lost]' );
 		if ( ! box ) { return; }
 		var d = draftGet();
 		box.hidden = ! ( st.loaded && d && d !== st.source && ( ! st.ed || d !== st.ed.getValue() ) );
@@ -117,7 +133,7 @@
 		return api( '/scss-compile', 'POST', { source: value } ).then( function ( r ) {
 			st.status = { error: r.error || null };
 			setStatus( statusHtml() );
-			var out = document.querySelector( '[data-crucible-out]' );
+			var out = q( '[data-crucible-out]' );
 			if ( out ) { out.hidden = false; out.textContent = r.css || '/* (no output) */'; }
 		} );
 	}
@@ -192,7 +208,7 @@
 	}
 
 	function recipesSetState( text ) {
-		var el = document.querySelector( '[data-crucible-recipes-state]' );
+		var el = q( '[data-crucible-recipes-state]' );
 		if ( el ) { el.textContent = text; }
 	}
 
@@ -203,7 +219,7 @@
 	}
 
 	function recipesSave() {
-		var rows = document.querySelectorAll( '.tf-recipe' );
+		var rows = qa( '.tf-recipe' );
 		var list = [].map.call( rows, function ( row ) {
 			return { n: row.querySelector( '.tf-recipe-name' ).value, code: row.querySelector( '.tf-recipe-code' ).value };
 		} );
@@ -217,7 +233,8 @@
 	// ---- Mounting ------------------------------------------------------------
 
 	function mountAll() {
-		var ta = document.querySelector( 'textarea[data-crucible-scss]:not([data-mounted])' );
+		bindShadow();
+		var ta = q( 'textarea[data-crucible-scss]:not([data-mounted])' );
 		if ( ta && window.TokenForgeScssEditor ) {
 			ta.setAttribute( 'data-mounted', '' );
 			st.ed = window.TokenForgeScssEditor.create( ta, {
@@ -235,7 +252,7 @@
 			setEd( st.source );
 			if ( ! st.loaded ) { load(); } else { updateLost(); }
 		}
-		var host = document.querySelector( '[data-crucible-recipes]:not([data-mounted])' );
+		var host = q( '[data-crucible-recipes]:not([data-mounted])' );
 		if ( host ) {
 			host.setAttribute( 'data-mounted', '' );
 			recipesLoad( host );
@@ -293,27 +310,27 @@
 		e.preventDefault();
 		if ( 'save' === act ) { save(); }
 		if ( 'css' === act ) {
-			var out = document.querySelector( '[data-crucible-out]' );
+			var out = q( '[data-crucible-out]' );
 			if ( out && ! out.hidden ) { out.hidden = true; } else { check(); }
 		}
 		if ( 'restore' === act && st.ed ) { st.ed.setValue( draftGet() ); updateLost(); }
 		if ( 'expandall' === act || 'collapseall' === act ) {
-			[].forEach.call( document.querySelectorAll( '[data-crucible-panel]' ), function ( p ) { setClosed( p, 'collapseall' === act ); } );
+			[].forEach.call( qa( '[data-crucible-panel]' ), function ( p ) { setClosed( p, 'collapseall' === act ); } );
 		}
 		if ( 'resetsec' === act && st.ed && window.confirm( __( 'Empty the editor? Nothing is saved until you press Save.', 'tokenforge-crucible' ) ) ) { st.ed.setValue( '' ); }
 		if ( 'recipes-save' === act ) { recipesSave(); }
 		if ( 'recipe-add' === act ) {
-			var host = document.querySelector( '[data-crucible-recipes]' );
+			var host = q( '[data-crucible-recipes]' );
 			if ( host ) { host.insertAdjacentHTML( 'beforeend', recipeRowHtml( null ) ); }
 		}
 		if ( 'recipe-remove' === act ) { btn.closest( '.tf-recipe' ).remove(); }
 	}
-	document.addEventListener( 'click', onAct );
-	document.addEventListener( 'keydown', function ( e ) {
+	on( 'click', onAct );
+	on( 'keydown', function ( e ) {
 		if ( ( 'Enter' === e.key || ' ' === e.key ) && e.target.matches && e.target.matches( '.tf-panel-head[data-crucible-act]' ) ) { onAct( e ); }
 	} );
 
-	document.addEventListener( 'input', function ( e ) {
+	on( 'input', function ( e ) {
 		var t = e.target;
 		if ( ! t.classList || ! t.classList.contains( 'tf-recipe-name' ) ) { return; }
 		// Same cleanup as 0.53.7: invalid characters become "-" while typing.
@@ -323,7 +340,7 @@
 	} );
 
 	// The head switch: dims the panel now and tells the server (it must honor `enabled` on /scss-save).
-	document.addEventListener( 'change', function ( e ) {
+	on( 'change', function ( e ) {
 		if ( ! e.target.hasAttribute || ! e.target.hasAttribute( 'data-crucible-enabled' ) ) { return; }
 		st.enabled = e.target.checked;
 		var wrap = e.target.closest( '[data-crucible-wrap]' );
@@ -335,7 +352,7 @@
 	} );
 
 	// Sync switches: save all three values on every change.
-	document.addEventListener( 'change', function ( e ) {
+	on( 'change', function ( e ) {
 		var t = e.target;
 		if ( ! t.hasAttribute || ! t.hasAttribute( 'data-crucible-sync' ) ) { return; }
 		var panel = t.closest( '.tf-panel' );

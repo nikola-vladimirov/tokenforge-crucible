@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.3
+Stable tag: 0.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,10 @@ Developed by Prista Digital, https://pristadigital.com
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.3.4 =
+* Updates from GitHub: new releases show in Dashboard > Updates like any other plugin update. Install 0.3.4 by hand once; later versions arrive by themselves.
+* Global SCSS now shows and works in the TokenForge window on the site's pages and in the builder's TokenForge window, not only in wp-admin.
 
 = 0.3.3 =
 * The Global SCSS entry in the TokenForge dashboard has the Crucible icon.
