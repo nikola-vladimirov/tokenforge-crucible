@@ -50,18 +50,19 @@ function tokenforge_crucible_acss_after_import( $result, $server, $request ) {
 	if ( '' === $code ) {
 		return $result;
 	}
-	$source = (string) get_option( tokenforge_crucible_scss_option(), '' );
+	$source = str_replace( "\r\n", "\n", (string) get_option( tokenforge_crucible_scss_option(), '' ) ); // Same line endings as the imported code, so an unedited block still matches.
 	$mark   = TOKENFORGE_CRUCIBLE_ACSS_MARK;
 	$pos    = strpos( $source, $mark );
 	$user   = false === $pos ? rtrim( $source ) : rtrim( substr( $source, 0, $pos ) ); // The block is always last, so everything above is the user's.
-	// Text typed below the mark that differs from the last import is the user's: keep it above the mark.
 	if ( false !== $pos ) {
 		$below = trim( substr( $source, $pos + strlen( $mark ) ) );
 		$last  = trim( (string) get_option( 'tokenforge_crucible_acss_last', '' ) );
-		// Drop the last imported ACSS code from the start; what remains is the user's.
-		if ( '' !== $last && 0 === strpos( $below, $last ) ) {
-			$below = trim( substr( $below, strlen( $last ) ) );
+		// The block no longer starts with the last import, so the user edited it (or no import was recorded): their version wins, no refresh.
+		if ( '' !== $below && ( '' === $last || 0 !== strpos( $below, $last ) ) ) {
+			return $result;
 		}
+		// Text typed after the unedited block is the user's: keep it above the mark.
+		$below = trim( substr( $below, strlen( $last ) ) );
 		if ( '' !== $below ) {
 			$user = rtrim( $user . "\n\n" . $below );
 		}

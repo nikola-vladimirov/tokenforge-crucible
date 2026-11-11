@@ -3,7 +3,7 @@
  * Plugin Name:       TokenForge Crucible
  * Plugin URI:        https://pristadigital.com
  * Description:       Add-on for TokenForge that restores Global SCSS, custom recipes and builder sync.
- * Version:           0.3.5
+ * Version:           0.3.6
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Prista Digital
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.3.5' );
+define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.3.6' );
 define( 'TOKENFORGE_CRUCIBLE_FILE', __FILE__ );
 
 // TokenForge 0.54.2 is the first build with the Transfer and Starter hooks Crucible uses.

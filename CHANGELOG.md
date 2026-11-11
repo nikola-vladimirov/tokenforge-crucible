@@ -2,6 +2,10 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.6
+
+- Automatic.css import: if you edited the imported custom SCSS block in Global SCSS, a new import leaves your version as it is instead of adding a fresh copy below it (the copy used to win and undo your edit). An unedited block is still refreshed, and code typed after it still moves above it.
+
 ## 0.3.5
 
 - The Crucible icon shows next to updates in Dashboard > Updates and on the Plugins screen.

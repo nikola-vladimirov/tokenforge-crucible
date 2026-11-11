@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.5
+Stable tag: 0.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,9 @@ Developed by Prista Digital, https://pristadigital.com
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.3.6 =
+* Automatic.css import: if you edited the imported custom SCSS block, a new import keeps your version instead of adding a fresh copy that undid your edit.
 
 = 0.3.5 =
 * The Crucible icon shows next to updates in Dashboard > Updates and on the Plugins screen.
