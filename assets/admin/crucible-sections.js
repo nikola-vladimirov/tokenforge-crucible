@@ -19,7 +19,7 @@
 
 	var __ = wp.i18n ? wp.i18n.__ : function ( s ) { return s; };
 	var ID = 'scss';
-	var DRAFT = 'tokenforge-crucible-scss-draft';
+	var DRAFT = 'tokenforge-crucible-scss-draft:' + cfg.rest; // Per site: subdirectory multisite shares one origin.
 	// The front-end TokenForge window renders the dashboard in a shadow root (#tf-dock-host), which
 	// document queries, non-composed events (change) and a body MutationObserver cannot see.
 	var listeners = [];
@@ -112,8 +112,11 @@
 		var value = st.ed ? st.ed.getValue() : st.source;
 		return api( '/scss-save', 'POST', { source: value, rev: st.rev } ).then( function ( r ) {
 			if ( r.conflict ) {
-				setStatus( '<span class="tf-scss-err">' + esc( __( 'The SCSS changed in the builder. Reload this section to see it.', 'tokenforge-crucible' ) ) + '</span>' );
-				return;
+				// Keep the user's text as the draft, then show the newer saved SCSS; the draft box offers theirs back.
+				draftSet( value );
+				return load().then( function () {
+					setStatus( '<span class="tf-scss-err">' + esc( __( 'The SCSS changed in the builder, so the newer version is shown. Your text is kept as a draft you can restore.', 'tokenforge-crucible' ) ) + '</span>' );
+				} );
 			}
 			if ( ! r.ok ) {
 				setStatus( '<span class="tf-scss-err">' + esc( r.error || __( 'Could not save the SCSS.', 'tokenforge-crucible' ) ) + '</span>' );
@@ -213,18 +216,33 @@
 	}
 
 	function recipesLoad( host ) {
+		st.recipesReady = false;
 		api( '/recipes' ).then( function ( r ) {
-			host.innerHTML = ( r.recipes || [] ).map( recipeRowHtml ).join( '' );
+			if ( ! Array.isArray( r.recipes ) ) {
+				recipesSetState( r.message || __( 'Could not load the recipes.', 'tokenforge-crucible' ) );
+				return;
+			}
+			host.innerHTML = r.recipes.map( recipeRowHtml ).join( '' );
+			st.recipesReady = true;
 		} );
 	}
 
 	function recipesSave() {
+		// Saving before the list loaded would replace every saved recipe with only the rows on screen.
+		if ( ! st.recipesReady ) {
+			recipesSetState( __( 'The recipes have not loaded yet. Reload the page and try again.', 'tokenforge-crucible' ) );
+			return;
+		}
 		var rows = qa( '.tf-recipe' );
 		var list = [].map.call( rows, function ( row ) {
 			return { n: row.querySelector( '.tf-recipe-name' ).value, code: row.querySelector( '.tf-recipe-code' ).value };
 		} );
 		return api( '/recipes', 'POST', { recipes: list } ).then( function ( r ) {
-			recipesSetState( __( 'Saved', 'tokenforge-crucible' ) + ' · ' + ( r.recipes || [] ).length );
+			if ( ! Array.isArray( r.recipes ) ) {
+				recipesSetState( r.message || __( 'Could not save the recipes.', 'tokenforge-crucible' ) );
+				return;
+			}
+			recipesSetState( __( 'Saved', 'tokenforge-crucible' ) + ' · ' + r.recipes.length );
 			// The editor completes ?recipe from st.recipes, so fetch the new merged list.
 			return api( '/scss' ).then( function ( s ) { st.recipes = s.recipes || st.recipes; st.recipesOn = false !== s.recipes_on; } );
 		} );
@@ -239,6 +257,7 @@
 			ta.setAttribute( 'data-mounted', '' );
 			st.ed = window.TokenForgeScssEditor.create( ta, {
 				api: api,
+				codeEditor: cfg.codeEditor || null,
 				data: function () { return { recipes: st.recipes, recipesOn: st.recipesOn, ref: st.ref }; },
 				height: 420,
 				onChange: function () {

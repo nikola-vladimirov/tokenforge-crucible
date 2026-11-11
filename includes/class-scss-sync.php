@@ -324,6 +324,12 @@ class Scss_Sync {
 		$v     = trim( (string) $v );
 		for ( $i = 0, $n = strlen( $v ); $i < $n; $i++ ) {
 			$ch = $v[ $i ];
+			if ( '"' === $ch || "'" === $ch ) {
+				$e    = self::string_end( $v, $i );
+				$cur .= substr( $v, $i, $e - $i );
+				$i    = $e - 1;
+				continue;
+			}
 			if ( '(' === $ch ) {
 				++$depth;
 			} elseif ( ')' === $ch ) {
@@ -366,6 +372,10 @@ class Scss_Sync {
 			$depth = 1;
 			$j     = $open + 1;
 			while ( $j < $len && $depth > 0 ) {
+				if ( '"' === $css[ $j ] || "'" === $css[ $j ] ) {
+					$j = self::string_end( $css, $j );
+					continue;
+				}
 				if ( '{' === $css[ $j ] ) {
 					++$depth;
 				} elseif ( '}' === $css[ $j ] ) {
@@ -1417,14 +1427,7 @@ class Scss_Sync {
 			return false === $e ? $n : $e;
 		}
 		if ( '"' === $c || "'" === $c ) {
-			for ( $j = $i + 1; $j < $n; $j++ ) {
-				if ( '\\' === $s[ $j ] ) {
-					++$j;
-				} elseif ( $s[ $j ] === $c ) {
-					return $j + 1;
-				}
-			}
-			return $n;
+			return self::string_end( $s, $i );
 		}
 		if ( '#' === $c && '{' === $c2 ) {
 			$d = 0;
@@ -1441,6 +1444,25 @@ class Scss_Sync {
 	}
 
 	/**
+	 * Index just past the quoted string starting at $i (its end when unclosed).
+	 *
+	 * @param string $s Text.
+	 * @param int    $i Index of the opening quote.
+	 * @return int
+	 */
+	private static function string_end( $s, $i ) {
+		$c = $s[ $i ];
+		for ( $j = $i + 1, $n = strlen( $s ); $j < $n; $j++ ) {
+			if ( '\\' === $s[ $j ] ) {
+				++$j;
+			} elseif ( $s[ $j ] === $c ) {
+				return $j + 1;
+			}
+		}
+		return strlen( $s );
+	}
+
+	/**
 	 * Items (statements and blocks) between $from and $to.
 	 *
 	 * @param string $s    Source.
@@ -1454,6 +1476,10 @@ class Scss_Sync {
 		$start = $from;
 		$paren = 0;
 		while ( $i < $to ) {
+			$i += strcspn( $s, "/\"'#(){;", $i, $to - $i ); // jump to the next character the parser acts on.
+			if ( $i >= $to ) {
+				break;
+			}
 			$k = self::skip( $s, $i, $paren );
 			if ( $k !== $i ) {
 				$i = $k;
@@ -1516,6 +1542,10 @@ class Scss_Sync {
 		$d     = 0;
 		$paren = 0;
 		for ( $i = $open; $i < $to; ) {
+			$i += strcspn( $s, "/\"'#(){}", $i, $to - $i );
+			if ( $i >= $to ) {
+				break;
+			}
 			$k = self::skip( $s, $i, $paren );
 			if ( $k !== $i ) {
 				$i = $k;
@@ -1568,7 +1598,32 @@ class Scss_Sync {
 	 * @return string
 	 */
 	private static function strip_comments( $t ) {
-		return preg_replace( array( '#/\*.*?\*/#s', '#(^|[^:])//[^\n]*#' ), array( '', '$1' ), $t );
+		$t = (string) $t;
+		if ( false === strpos( $t, '/' ) ) {
+			return $t;
+		}
+		// Walk like the parser, so "//" in url(), strings or #{} is not a comment.
+		$out   = '';
+		$from  = 0;
+		$paren = 0;
+		for ( $i = 0, $n = strlen( $t ); $i < $n; ) {
+			$k = self::skip( $t, $i, $paren );
+			if ( $k !== $i ) {
+				if ( '/' === $t[ $i ] ) {
+					$out .= substr( $t, $from, $i - $from );
+					$from = $k;
+				}
+				$i = $k;
+				continue;
+			}
+			if ( '(' === $t[ $i ] ) {
+				++$paren;
+			} elseif ( ')' === $t[ $i ] ) {
+				$paren = max( 0, $paren - 1 );
+			}
+			++$i;
+		}
+		return $out . substr( $t, $from );
 	}
 
 	/**
@@ -1578,12 +1633,22 @@ class Scss_Sync {
 	 * @return array
 	 */
 	public static function class_blocks( $src ) {
+		static $cache = array();
+		$src = (string) $src;
+		$key = md5( $src );
+		if ( isset( $cache[ $key ] ) ) {
+			return $cache[ $key ];
+		}
 		$out = array();
 		foreach ( self::items( $src, 0, strlen( $src ) ) as $it ) {
 			if ( 'block' === $it['type'] && preg_match( '/^\.(-?[_a-zA-Z][\w-]*)$/', $it['header'], $m ) && ! isset( $out[ $m[1] ] ) ) {
 				$out[ $m[1] ] = $it;
 			}
 		}
+		if ( count( $cache ) >= 16 ) {
+			$cache = array(); // a sync pass works on a handful of sources at a time.
+		}
+		$cache[ $key ] = $out;
 		return $out;
 	}
 
@@ -1800,7 +1865,7 @@ class Scss_Sync {
 					if ( ! preg_match( '/^(&:|@include\s+breakpoint|@media)/', $it['header'] ) ) {
 						continue;
 					}
-					if ( '' === trim( self::strip_comments( substr( $src, $it['open'] + 1, $it['close'] - $it['open'] - 1 ) ) ) ) {
+					if ( '' === trim( substr( $src, $it['open'] + 1, $it['close'] - $it['open'] - 1 ) ) ) {
 						$s  = $it['start'];
 						$ls = strrpos( substr( $src, 0, $s ), "\n" );
 						if ( false !== $ls && '' === trim( substr( $src, $ls + 1, $s - $ls - 1 ) ) ) {
@@ -1978,14 +2043,19 @@ class Scss_Sync {
 	 * @return string
 	 */
 	public static function custom_to_scss( $css ) {
-		$css = self::dedent( (string) $css );
-		$out = array();
+		$css  = self::dedent( (string) $css );
+		$out  = array();
+		$sass = '/#\{|\$|@(?:while|for|each|if|else|function|mixin|include|import|use|forward|error|debug|warn|return|extend|content)\b/i';
 		foreach ( self::items( $css, 0, strlen( $css ) ) as $it ) {
 			if ( 'block' !== $it['type'] ) {
 				continue; // a declaration without a selector does nothing in Custom CSS.
 			}
 			$h    = $it['header'];
 			$body = substr( $css, $it['open'] + 1, $it['close'] - $it['open'] - 1 );
+			// Builder CSS can come from any role that saves classes: no Sass logic into the Global SCSS.
+			if ( preg_match( $sass, $body ) || ( '@' === $h[0] ? ( ! preg_match( '/^@(?:media|supports|container|layer|keyframes|font-face)\b/i', $h ) || preg_match( $sass, $h ) ) : false !== strpos( $h, '#{' ) ) ) {
+				continue;
+			}
 			if ( '@' === $h[0] ) {
 				$sel  = $h;
 				$body = str_replace( '%root%', '&', $body );
@@ -2265,11 +2335,15 @@ class Scss_Sync {
 		$have = self::region_css( $src, $name );
 		$have = '' === $have ? '' : self::builder_view( array( '_cssCustom' => $have ), $name )['extras'];
 		if ( self::canon_css( $have ) !== self::canon_css( $view['extras'] ) ) {
-			if ( ! isset( self::class_blocks( $src )[ $name ] ) ) {
-				$src = rtrim( $src ) . ( '' === trim( $src ) ? '' : "\n\n" ) . '.' . $name . " {\n}\n";
+			$with = $src;
+			if ( ! isset( self::class_blocks( $with )[ $name ] ) ) {
+				$with = rtrim( $with ) . ( '' === trim( $with ) ? '' : "\n\n" ) . '.' . $name . " {\n}\n";
 			}
-			$src     = self::write_custom( $src, self::class_blocks( $src )[ $name ], $view['extras'] );
-			$changed = true;
+			$blocks = self::class_blocks( $with );
+			if ( isset( $blocks[ $name ] ) ) {
+				$src     = self::write_custom( $with, $blocks[ $name ], $view['extras'] );
+				$changed = true;
+			}
 		}
 		return array( $src, $now, $changed );
 	}
@@ -2519,8 +2593,12 @@ class Scss_Sync {
 	private static function rewrite_block( $src, $name, $keys, $units ) {
 		$blocks = self::class_blocks( $src );
 		if ( ! isset( $blocks[ $name ] ) ) {
-			$src    = rtrim( $src ) . ( '' === trim( $src ) ? '' : "\n\n" ) . '.' . $name . " {}\n";
-			$blocks = self::class_blocks( $src );
+			$with   = rtrim( $src ) . ( '' === trim( $src ) ? '' : "\n\n" ) . '.' . $name . " {}\n";
+			$blocks = self::class_blocks( $with );
+			if ( ! isset( $blocks[ $name ] ) ) {
+				return $src; // not a name a block can have, or an unclosed "{" above swallowed it.
+			}
+			$src = $with;
 		}
 		$by_ctx = array();
 		foreach ( $keys as $fk ) {
@@ -2582,16 +2660,18 @@ class Scss_Sync {
 				$index[ $c['name'] ] = $i;
 			}
 		}
+		$sent = array();
 		foreach ( isset( $args['classes'] ) && is_array( $args['classes'] ) ? $args['classes'] : array() as $c ) {
 			if ( isset( $c['name'], $index[ $c['name'] ] ) && isset( $c['settings'] ) && is_array( $c['settings'] ) ) {
 				$classes[ $index[ $c['name'] ] ]['settings'] = $c['settings'];
+				$sent[ $c['name'] ]                          = true;
 			}
 		}
 		$state   = self::state();
 		$changed = false;
 		foreach ( array_keys( $blocks ) as $name ) {
-			if ( ! isset( self::class_blocks( $src )[ $name ] ) ) {
-				continue;
+			if ( $dry && isset( $args['classes'] ) && ! isset( $sent[ $name ] ) ) {
+				continue; // the live preview asks only about the classes it sent.
 			}
 			if ( ! isset( $index[ $name ] ) ) {
 				if ( $dry || empty( $opts['sync_create'] ) ) {
@@ -2617,10 +2697,11 @@ class Scss_Sync {
 				$result['errors'][ $name ] = $r['error'];
 				continue;
 			}
-			$scss = $r['units'];
+			$scss    = $r['units'];
+			$adopted = $src;
 			// The Custom CSS part never holds a field value (the block wins).
 			$src = self::normalize_region( $src, $name, $scss );
-			if ( $src !== $was ) {
+			if ( $src !== $adopted ) {
 				$scss = self::block_units( $src, $name )['units'];
 			}
 			// First sync of this class: what only the builder has comes into the block.
@@ -2744,7 +2825,8 @@ class Scss_Sync {
 	 * @return void
 	 */
 	public static function on_classes_saved( $old, $new_classes ) {
-		if ( self::$busy || ! self::enabled() || ! is_array( $new_classes ) ) {
+		// Only users who may edit the Global SCSS pull builder changes into it; the next SCSS push wins over the rest.
+		if ( self::$busy || ! self::enabled() || ! is_array( $new_classes ) || ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 		$opts   = tokenforge_crucible_sync_settings();
@@ -2789,10 +2871,11 @@ class Scss_Sync {
 				$touched = true;
 			}
 		}
+		$restored = array();
 		foreach ( $new_classes as $idx => $c ) {
 			$name = isset( $c['name'] ) ? (string) $c['name'] : '';
-			if ( '' === $name ) {
-				continue;
+			if ( '' === $name || ! preg_match( '/^-?[_a-zA-Z][\w-]*$/', $name ) ) {
+				continue; // "w-1/2", "md:flex", "карта": no SCSS block can have that name.
 			}
 			$view  = self::builder_view( isset( $c['settings'] ) ? $c['settings'] : array(), $name );
 			$known = isset( $state['classes'][ $name ] );
@@ -2843,7 +2926,8 @@ class Scss_Sync {
 				}
 			}
 			if ( $stale ) {
-				$restore[ $idx ] = true;
+				$restore[ $idx ]   = true;
+				$restored[ $name ] = $stale;
 				foreach ( $stale as $fk ) {
 					// Keep the block's value: the stale one does not go into the SCSS.
 					if ( isset( $last[ $fk ] ) ) {
@@ -2873,6 +2957,20 @@ class Scss_Sync {
 			update_option( self::STATE, $state, false );
 			self::$busy = false;
 			self::push();
+			// Restored once: the same value set again is meant, so it no longer counts as stale.
+			$state = self::state();
+			foreach ( $restored as $name => $keys ) {
+				foreach ( $keys as $fk ) {
+					if ( isset( $state['classes'][ $name ]['units'][ $fk ] ) ) {
+						$state['classes'][ $name ]['before'][ $fk ] = $state['classes'][ $name ]['units'][ $fk ];
+					} else {
+						unset( $state['classes'][ $name ]['before'][ $fk ] );
+					}
+				}
+			}
+			self::$busy = true;
+			update_option( self::STATE, $state, false );
+			self::$busy = false;
 		} else {
 			self::$busy = true;
 			update_option( self::STATE, $state, false );

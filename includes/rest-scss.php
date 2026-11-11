@@ -37,8 +37,9 @@ function tokenforge_crucible_scss_reference() {
  * Registers the dock routes.
  */
 function tokenforge_crucible_register_dock_routes() {
+	// Same rule as TokenForge's CSS writes: on multisite a site admin also needs edit_css.
 	$permission = static function () {
-		return current_user_can( 'manage_options' );
+		return current_user_can( 'manage_options' ) && ( ! is_multisite() || current_user_can( 'edit_css' ) );
 	};
 
 	register_rest_route(
@@ -188,6 +189,19 @@ function tokenforge_crucible_register_dock_routes() {
 
 				$source  = str_replace( "\r\n", "\n", $body['source'] );
 				$current = (string) get_option( tokenforge_crucible_scss_option(), '' );
+
+				// Larger sources cannot compile or be imported back (see tokenforge_crucible_compile()).
+				if ( strlen( $source ) > TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES ) {
+					if ( $flagged ) {
+						$generator->generate();
+					}
+					return rest_ensure_response(
+						array(
+							'ok'    => false,
+							'error' => 'SCSS is larger than 100 KB.',
+						)
+					);
+				}
 
 				if ( empty( $body['force'] ) && isset( $body['rev'] ) && md5( $current ) !== $body['rev'] && $source !== $current ) {
 					if ( $flagged ) {

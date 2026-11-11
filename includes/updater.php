@@ -35,9 +35,11 @@ function tokenforge_crucible_release() {
 	$found    = null;
 	$data     = 200 === (int) wp_remote_retrieve_response_code( $response ) ? json_decode( (string) wp_remote_retrieve_body( $response ), true ) : null;
 
+	// Only a zip from this repository's own releases is offered as the update package.
+	$downloads = str_replace( 'https://api.github.com/repos/', 'https://github.com/', TOKENFORGE_CRUCIBLE_REPO_API ) . '/releases/download/';
 	if ( is_array( $data ) && ! empty( $data['tag_name'] ) ) {
 		foreach ( (array) ( $data['assets'] ?? array() ) as $asset ) {
-			if ( isset( $asset['name'], $asset['browser_download_url'] ) && '.zip' === substr( $asset['name'], -4 ) ) {
+			if ( isset( $asset['name'], $asset['browser_download_url'] ) && '.zip' === substr( $asset['name'], -4 ) && 0 === strpos( (string) $asset['browser_download_url'], $downloads ) ) {
 				$found = array(
 					'version' => ltrim( (string) $data['tag_name'], 'v' ),
 					'url'     => (string) $data['html_url'],

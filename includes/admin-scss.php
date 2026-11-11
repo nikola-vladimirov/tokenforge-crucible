@@ -29,8 +29,9 @@ function tokenforge_crucible_scss_enqueue( $hook ) {
 
 	wp_enqueue_style( 'tokenforge-crucible-admin', $url . 'crucible-admin.css', array( 'tokenforge-admin' ), TOKENFORGE_CRUCIBLE_VERSION );
 	// CodeMirror (SCSS mode) when wp-admin has it; the shared editor falls back to the textarea without it.
+	$code_editor = false;
 	if ( function_exists( 'wp_enqueue_code_editor' ) ) {
-		wp_enqueue_code_editor(
+		$code_editor = wp_enqueue_code_editor(
 			array(
 				'type'       => 'text/x-scss',
 				'codemirror' => array(
@@ -51,9 +52,10 @@ function tokenforge_crucible_scss_enqueue( $hook ) {
 		'tokenforge-crucible-sections',
 		'TokenForgeCrucible',
 		array(
-			'rest'   => esc_url_raw( rest_url( 'tokenforge-crucible/v1' ) ),
-			'tfRest' => esc_url_raw( rest_url( 'tokenforge/v1' ) ),
-			'nonce'  => wp_create_nonce( 'wp_rest' ),
+			'rest'       => esc_url_raw( rest_url( 'tokenforge-crucible/v1' ) ),
+			'tfRest'     => esc_url_raw( rest_url( 'tokenforge/v1' ) ),
+			'nonce'      => wp_create_nonce( 'wp_rest' ),
+			'codeEditor' => $code_editor, // wp.codeEditor settings, or false when the user turned syntax highlighting off.
 		)
 	);
 }

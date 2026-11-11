@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.6
+Stable tag: 0.3.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,11 +14,16 @@ TokenForge Crucible adds the features the WordPress.org build of TokenForge does
 
 Requires TokenForge 0.54.2 or later.
 
+Deleting the add-on keeps your Global SCSS, recipes and sync settings in the database, so reinstalling it (or moving to a TokenForge build that has Global SCSS) brings them back. To clear the SCSS and recipes first, use TokenForge Reset with Global SCSS and Recipes ticked.
+
 Developed by Prista Digital, https://pristadigital.com
 
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.3.7 =
+* Fixes from a full code and security review: builder sync no longer damages Global SCSS with "//" in url() or strings, or with class names like w-1/2; much faster saves with many classes; only administrators pull builder changes into Global SCSS; multisite needs edit_css; 100 KB save limit; the dashboard code editor loads again; safer recipe saves and save conflicts.
 
 = 0.3.6 =
 * Automatic.css import: if you edited the imported custom SCSS block, a new import keeps your version instead of adding a fresh copy that undid your edit.

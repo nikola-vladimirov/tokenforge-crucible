@@ -252,14 +252,20 @@
 	function livePush( src ) {
 		var g = st.sync && gp(), list = g && builderClassList( g );
 		if ( ! Array.isArray( list ) ) { return; }
-		var classes = [];
-		blockNames( src ).forEach( function ( n ) { var c = findClass( list, n ); if ( c ) { classes.push( { name: n, settings: JSON.parse( JSON.stringify( c.settings || {} ) ) } ); } } );
+		var classes = [], sent = {};
+		blockNames( src ).forEach( function ( n ) { var c = findClass( list, n ); if ( c ) { sent[ n ] = JSON.stringify( c.settings || {} ); classes.push( { name: n, settings: JSON.parse( sent[ n ] ) } ); } } );
 		if ( ! classes.length ) { return; }
 		var seq = ++pushSeq;
 		liveBusy = true;
 		api( '/scss-live', 'POST', { mode: 'push', source: src, classes: classes } ).then( function ( r ) {
 			liveBusy = false;
-			if ( seq === pushSeq && r && r.ok && r.classes && r.classes.length ) { builderClasses( r.classes ); }
+			if ( seq !== pushSeq || ! r || ! r.ok || ! r.classes || ! r.classes.length ) { return; }
+			// A class changed in the builder since it was sent (or not pulled yet) keeps your change.
+			var now = gp(), cur = now && builderClassList( now );
+			builderClasses( r.classes.filter( function ( c ) {
+				var b = Array.isArray( cur ) ? findClass( cur, c.name ) : null, j = b ? JSON.stringify( b.settings || {} ) : null;
+				return j === sent[ c.name ] && ( ! ( c.name in snaps ) || j === snaps[ c.name ] );
+			} ) );
 		} ).catch( function () { liveBusy = false; } );
 	}
 	// The classes to watch: those with a block, and the one open in the builder.

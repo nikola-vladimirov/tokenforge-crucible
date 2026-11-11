@@ -2,6 +2,25 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.7
+
+Fixes from a full code and security review.
+
+- Builder sync no longer damages your Global SCSS on Save when it contains `//` inside url() or a quoted string (for example `url(//cdn.example.com/a.png)` or `content: "a//b"`). Only real comments are treated as comments.
+- A builder class whose name can't be an SCSS class (for example `w-1/2`, `md:flex` or one in another alphabet) no longer copies the whole Global SCSS into itself when you save in the builder.
+- Saving with many synced classes is much faster: the SCSS is read once per save instead of again for every class. The live preview checks only the classes it sent.
+- In the builder, a class you change in the Style panel while the SCSS dock is still waiting for a reply keeps your change.
+- Builder changes are pulled into the Global SCSS only for users who can edit it (administrators). CSS panel code with Sass logic (loops, mixins, variables) is no longer copied into the Global SCSS.
+- A value you set back on purpose in the builder after a sync is no longer undone every time.
+- A state block that holds only a comment, like `&:hover { /* todo */ }`, is kept.
+- Quoted `}` or `;` in a class's CSS (for example `content: "}"`) no longer breaks the rules after it.
+- Multisite: saving Global SCSS needs the edit_css right as well, as TokenForge does.
+- Global SCSS over 100 KB is refused on Save with a message, instead of being saved and then lost on the next import or restore.
+- Automatic.css import: code you type after the imported block now stays after it, so your overrides still win.
+- Dashboard: the SCSS editor uses the WordPress code editor (line numbers, highlighting) again. A save conflict now shows the newer SCSS and keeps your text as a draft you can restore. Recipes can't be saved before they have loaded, and a failed save says so. Unsaved drafts are kept per site.
+- Updates are only offered from this plugin's own GitHub releases.
+- Two fewer database queries on every page view.
+
 ## 0.3.6
 
 - Automatic.css import: if you edited the imported custom SCSS block in Global SCSS, a new import leaves your version as it is instead of adding a fresh copy below it (the copy used to win and undo your edit). An unedited block is still refreshed, and code typed after it still moves above it.

@@ -115,7 +115,7 @@ function tokenforge_crucible_recipes_routes() {
  * tokenforge_recipes option (key 'custom') into the add-on's own list.
  */
 function tokenforge_crucible_recipes_migrate() {
-	if ( get_option( 'tokenforge_crucible_recipes_migrated' ) ) {
+	if ( tokenforge_crucible_migrated( 'tokenforge_crucible_recipes_migrated' ) ) {
 		return;
 	}
 	$old  = get_option( 'tokenforge_recipes', array() );
@@ -135,7 +135,7 @@ function tokenforge_crucible_recipes_migrate() {
 	}
 
 	update_option( 'tokenforge_crucible_recipes', $list, false );
-	update_option( 'tokenforge_crucible_recipes_migrated', 1, false );
+	add_option( 'tokenforge_crucible_recipes_migrated', 1, '', true );
 }
 
 add_action( 'init', 'tokenforge_crucible_recipes_migrate' );

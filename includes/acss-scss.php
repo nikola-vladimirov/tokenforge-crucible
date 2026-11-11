@@ -46,6 +46,10 @@ function tokenforge_crucible_acss_after_import( $result, $server, $request ) {
 	if ( '/tokenforge/v1/import-acss' !== $request->get_route() || ! is_array( $data ) || empty( $data['ok'] ) ) {
 		return $result;
 	}
+	// TokenForge's ACSS import only needs manage_options; writing CSS on multisite also needs edit_css.
+	if ( is_multisite() && ! current_user_can( 'edit_css' ) ) {
+		return $result;
+	}
 	$code = tokenforge_crucible_acss_code();
 	if ( '' === $code ) {
 		return $result;
@@ -53,7 +57,8 @@ function tokenforge_crucible_acss_after_import( $result, $server, $request ) {
 	$source = str_replace( "\r\n", "\n", (string) get_option( tokenforge_crucible_scss_option(), '' ) ); // Same line endings as the imported code, so an unedited block still matches.
 	$mark   = TOKENFORGE_CRUCIBLE_ACSS_MARK;
 	$pos    = strpos( $source, $mark );
-	$user   = false === $pos ? rtrim( $source ) : rtrim( substr( $source, 0, $pos ) ); // The block is always last, so everything above is the user's.
+	$user   = false === $pos ? rtrim( $source ) : rtrim( substr( $source, 0, $pos ) ); // Everything above the mark is the user's.
+	$after  = '';
 	if ( false !== $pos ) {
 		$below = trim( substr( $source, $pos + strlen( $mark ) ) );
 		$last  = trim( (string) get_option( 'tokenforge_crucible_acss_last', '' ) );
@@ -61,14 +66,14 @@ function tokenforge_crucible_acss_after_import( $result, $server, $request ) {
 		if ( '' !== $below && ( '' === $last || 0 !== strpos( $below, $last ) ) ) {
 			return $result;
 		}
-		// Text typed after the unedited block is the user's: keep it above the mark.
-		$below = trim( substr( $below, strlen( $last ) ) );
-		if ( '' !== $below ) {
-			$user = rtrim( $user . "\n\n" . $below );
-		}
+		// Text typed after the unedited block is the user's: it stays after the block, so its overrides still win.
+		$after = trim( substr( $below, strlen( $last ) ) );
+	}
+	$new = ( '' === $user ? '' : $user . "\n\n" ) . $mark . "\n" . $code . "\n" . ( '' === $after ? '' : "\n" . $after . "\n" );
+	if ( strlen( $new ) > TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES ) {
+		return $result; // Over the cap the SCSS could not compile or be imported back; leave it as it is.
 	}
 	update_option( 'tokenforge_crucible_acss_last', $code, false );
-	$new = ( '' === $user ? '' : $user . "\n\n" ) . $mark . "\n" . $code . "\n";
 	if ( $new !== $source ) {
 		update_option( tokenforge_crucible_scss_option(), $new, false );
 		\TokenForgeCrucible\Scss_Sync::push();

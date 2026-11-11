@@ -61,12 +61,31 @@ function tokenforge_crucible_sync_save( $in ) {
 }
 
 /**
+ * Whether a one-time job already ran. Its flag is autoloaded, so the check costs no query on page views.
+ *
+ * @param string $flag Option name of the flag.
+ * @return bool
+ */
+function tokenforge_crucible_migrated( $flag ) {
+	if ( isset( wp_load_alloptions()[ $flag ] ) ) {
+		return true;
+	}
+	if ( ! get_option( $flag ) ) {
+		return false;
+	}
+	// Up to 0.3.6 the flag was stored without autoload: store it again with autoload.
+	delete_option( $flag );
+	add_option( $flag, 1, '', true );
+	return true;
+}
+
+/**
  * One time: moves the Global SCSS source and the sync switches an older TokenForge
  * kept in the tokenforge_scss option into the add-on's own options. The source is
  * only copied when the add-on has none yet.
  */
 function tokenforge_crucible_scss_migrate() {
-	if ( get_option( 'tokenforge_crucible_scss_migrated' ) ) {
+	if ( tokenforge_crucible_migrated( 'tokenforge_crucible_scss_migrated' ) ) {
 		return;
 	}
 	$old = get_option( 'tokenforge_scss', array() );
@@ -81,7 +100,7 @@ function tokenforge_crucible_scss_migrate() {
 	if ( array_key_exists( 'enabled', $old ) && false === get_option( 'tokenforge_crucible_scss_enabled', false ) ) {
 		update_option( 'tokenforge_crucible_scss_enabled', ! empty( $old['enabled'] ), false );
 	}
-	update_option( 'tokenforge_crucible_scss_migrated', 1, false );
+	add_option( 'tokenforge_crucible_scss_migrated', 1, '', true );
 }
 
 /**
