@@ -73,6 +73,10 @@ function tokenforge_crucible_update_check( $update, $plugin_data, $plugin_file )
 		'version' => $release['version'],
 		'url'     => $release['url'],
 		'package' => $release['package'],
+		'icons'   => array(
+			'1x' => plugins_url( 'assets/icon-128x128.png', TOKENFORGE_CRUCIBLE_FILE ),
+			'2x' => plugins_url( 'assets/icon-256x256.png', TOKENFORGE_CRUCIBLE_FILE ),
+		),
 	) : $update;
 }
 add_filter( 'update_plugins_github.com', 'tokenforge_crucible_update_check', 10, 3 );

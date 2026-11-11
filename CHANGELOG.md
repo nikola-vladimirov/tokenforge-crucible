@@ -2,6 +2,10 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.3.5
+
+- The Crucible icon shows next to updates in Dashboard > Updates and on the Plugins screen.
+
 ## 0.3.4
 
 - Updates from GitHub: new releases show in Dashboard > Updates and on the Plugins screen like any other plugin update, auto-updates included. Install 0.3.4 by hand once; later versions arrive by themselves.
