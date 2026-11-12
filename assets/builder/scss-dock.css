@@ -142,3 +142,16 @@
 #tf-sdock.is-left .tf-sdock-status, #tf-sdock.is-right .tf-sdock-status { order: 3; flex: 1 1 100%; padding-inline: 6px; }
 #tf-sdock.is-left .tf-sdock-btn span, #tf-sdock.is-right .tf-sdock-btn span { display: none; }
 #tf-sdock.is-left .tf-sdock-save span, #tf-sdock.is-right .tf-sdock-save span { display: inline; }
+
+/* Block editor: the dock is the last row of the editor content area (a column), so the
+   sidebars stay free. It sits outside the editor's dark scope and brings its own colours:
+   light by default, the dark ones above when the editor is dark (body.tf-be-dark). */
+#tf-sdock.is-blocks { position: sticky; bottom: 0; flex: 0 0 auto; z-index: 30; }
+#tf-sdock.is-blocks [data-a="side"] { display: none; }
+body:not(.tf-be-dark) #tf-sdock.is-blocks { --sd-bg: #fff; --sd-bg-2: #f6f7f7; --sd-bg-3: #e8eaeb; --sd-bg-4: #dcdcde; --sd-line: #dcdcde; --sd-text: #1e1e1e; --sd-muted: #646970; --sd-accent: var(--wp-admin-theme-color, #3858e9); --sd-accent-ink: #fff; }
+body:not(.tf-be-dark) #tf-sdock.is-blocks .tf-sdock-status.is-ok { color: #00693e; }
+body:not(.tf-be-dark) #tf-sdock.is-blocks .tf-sdock-status.is-err { color: #cc1818; }
+body:not(.tf-be-dark) #tf-sdock.is-blocks .tf-sdock-status.is-warn { color: #8a5200; }
+/* The launcher in the editor header, beside the TokenForge button */
+.components-button.tf-sdock-launch { gap: 6px; margin-right: 4px; font-weight: 600; }
+.components-button.tf-sdock-launch[aria-pressed="true"] { color: var(--wp-admin-theme-color, #3858e9); }

@@ -2,6 +2,18 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.4.0
+
+Crucible in the WordPress block editor (needs TokenForge 0.57.0 or later; nothing changes with an older TokenForge or in the builder).
+
+- The Global SCSS dock opens in the block editor (post editor and site editor) for administrators, when Global SCSS is switched on: an SCSS button in the editor header beside the TokenForge button, or Alt+Shift+S. The dock sits at the bottom of the editing area and leaves the sidebars free.
+- Live preview: what you type shows in the editor canvas right away; nothing is saved until you press Save. Switching Live off shows the saved CSS again.
+- The classes of your Global SCSS are offered by the TokenForge class field in the block sidebar, each once and with a short preview. Classes you are typing in the dock are offered right away, before you save.
+- The target button in the dock jumps to the SCSS of a class on the selected block, or starts a block for it.
+- The Global SCSS section is in the TokenForge window when you open that window in the block editor.
+- The dock follows the dark editor look when TokenForge's dark editor interface is on.
+- The builder class sync does not run in the block editor.
+
 ## 0.3.7
 
 Fixes from a full code and security review.

@@ -1,4 +1,7 @@
-/* TokenForge: Global SCSS dock in the Bricks builder.
+/* TokenForge: Global SCSS dock in the Bricks builder, and in the block editor
+ * (TokenForgeDockCfg.platform 'blocks': last row of the editor content area, a
+ * button in the editor header, live preview in the editor canvas, no builder
+ * class sync).
  *
  * A panel docked under the canvas (like Bricks' own CSS panel) with the Global
  * SCSS editor, independent of the TokenForge window:
@@ -23,6 +26,8 @@
 	if ( ! cfg.restUrl || window.TokenForgeDock ) { return; }
 
 	var MARK = cfg.marker || '/* --- Global SCSS --- */';
+	// The block editor: same dock, no builder class sync, the canvas comes from TokenForgeEditor.canvas().
+	var BLOCKS = 'blocks' === cfg.platform;
 	var KEY = 'tf-scss-dock-v1', HEAD = 36, MIN_H = 120;
 	var st = {
 		open: false, min: false, max: false, h: 300, w: 460, side: 'bottom', live: true, cheat: false,
@@ -76,7 +81,7 @@
 				'<div class="tf-sdock-actions">' +
 					'<button type="button" class="tf-sdock-btn tf-sdock-live" data-a="live" title="Live preview in the canvas while you type">' + ICON.eye + '<span>Live</span></button>' +
 					'<button type="button" class="tf-sdock-btn tf-sdock-cheatbtn" data-a="cheat" title="Cheatsheet: classes, variables, mixins, recipes">' + ICON.book + '<span>Cheatsheet</span></button>' +
-					'<button type="button" class="tf-sdock-icon tf-sdock-goto" data-a="goto" title="Go to the SCSS of the class selected in the builder">' + ICON.target + '</button>' +
+					'<button type="button" class="tf-sdock-icon tf-sdock-goto" data-a="goto" title="Go to the SCSS of the class selected in ' + ( BLOCKS ? 'the block editor' : 'the builder' ) + '">' + ICON.target + '</button>' +
 					'<button type="button" class="tf-sdock-icon" data-a="side" title="Dock at the bottom, right or left">' + ICON.side + '</button>' +
 					'<button type="button" class="tf-sdock-btn tf-sdock-save" data-a="save" title="Save (Ctrl/Cmd + S in the editor)">Save</button>' +
 					'<button type="button" class="tf-sdock-icon" data-a="max" title="Maximise / restore height">' + ICON.max + '</button>' +
@@ -98,7 +103,12 @@
 		tab.className = 'tf-sdock-tab';
 		tab.innerHTML = ICON.code + '<span>SCSS</span>';
 		tab.title = 'Global SCSS' + ( label() ? ' (' + label() + ')' : '' );
-		tab.addEventListener( 'click', function () { open(); } );
+		tab.addEventListener( 'click', function () { if ( BLOCKS ) { toggle(); } else { open(); } } );
+		if ( BLOCKS ) {
+			// In the block editor the tab is a button in the editor header.
+			root.className += ' is-blocks';
+			tab.className = 'components-button is-compact tf-sdock-launch';
+		}
 
 		// Keys typed here are for the editor, not for Bricks' shortcuts (Delete, Ctrl+Z, Ctrl+S …).
 		[ 'keydown', 'keyup', 'keypress' ].forEach( function ( t ) { root.addEventListener( t, function ( e ) { e.stopPropagation(); } ); } );
@@ -119,15 +129,24 @@
 	}
 
 	function mount() {
-		var p = document.getElementById( 'bricks-preview' );
-		if ( ! p ) { return false; }
+		var p = BLOCKS ? document.querySelector( '.interface-interface-skeleton__content' ) : document.getElementById( 'bricks-preview' );
+		// The block editor: only where the editor header is (the launcher lives there), not on the Widgets screen.
+		if ( ! p || ( BLOCKS && ! document.querySelector( '.editor-header__settings' ) ) ) { return false; }
 		if ( ! root ) { build(); }
 		if ( preview && preview !== p ) { unpad( preview ); }
 		preview = p;
 		if ( root.parentNode !== p ) { p.appendChild( root ); }
+		if ( BLOCKS ) {
+			// Beside the TokenForge button, which stays first.
+			var bar = document.querySelector( '.editor-header__settings' ), win = bar && bar.querySelector( '.tf-be-window' );
+			if ( bar && ( tab.parentNode !== bar || ( win && tab.previousElementSibling !== win ) ) ) { bar.insertBefore( tab, win ? win.nextSibling : bar.firstChild ); }
+			return true;
+		}
 		if ( tab.parentNode !== p ) { p.appendChild( tab ); }
 		return true;
 	}
+	// The launcher is missing while the editor header exists (the editor draws its header again).
+	function lostTab() { return BLOCKS ? !! document.querySelector( '.editor-header__settings' ) && ! tab.isConnected : ! tab.isConnected; }
 	function unpad( p ) { p.style.paddingBottom = ''; p.style.paddingLeft = ''; p.style.paddingRight = ''; p.style.boxSizing = ''; }
 
 	function height() {
@@ -145,20 +164,22 @@
 		if ( ! mount() ) { return; }
 		var hidden = ! st.open || preview.classList.contains( 'is-previewing' );
 		root.hidden = hidden;
-		tab.hidden = ! hidden || ! cfg.tab || preview.classList.contains( 'is-previewing' );
+		tab.hidden = ! BLOCKS && ( ! hidden || ! cfg.tab || preview.classList.contains( 'is-previewing' ) );
+		if ( BLOCKS ) { tab.setAttribute( 'aria-pressed', hidden ? 'false' : 'true' ); }
 		if ( hidden ) { unpad( preview ); return; }
-		var side = 'left' === st.side || 'right' === st.side ? st.side : 'bottom';
+		// The block editor's content area is a column: the dock is its last row (bottom only).
+		var side = ! BLOCKS && ( 'left' === st.side || 'right' === st.side ) ? st.side : 'bottom';
 		root.classList.toggle( 'is-min', st.min );
 		root.classList.toggle( 'is-max', st.max && ! st.min );
 		root.classList.toggle( 'is-left', 'left' === side );
 		root.classList.toggle( 'is-right', 'right' === side );
 		unpad( preview );
-		preview.style.boxSizing = 'border-box';
+		if ( ! BLOCKS ) { preview.style.boxSizing = 'border-box'; }
 		if ( 'bottom' === side ) {
 			var h = height();
 			root.style.width = '';
 			root.style.height = h + 'px';
-			preview.style.paddingBottom = h + 'px';
+			if ( ! BLOCKS ) { preview.style.paddingBottom = h + 'px'; }
 		} else {
 			// Beside the canvas: full height (just the header when minimised).
 			var w = width();
@@ -192,7 +213,7 @@
 	function setQuiet( v ) { st.quiet = true; ed.setValue( v ); st.quiet = false; }
 	function fetchSource( force ) {
 		return api( '/scss' ).then( function ( r ) {
-			st.enabled = !! r.enabled; st.sync = !! r.sync; st.status = r.status || {};
+			st.enabled = !! r.enabled; st.sync = ! BLOCKS && !! r.sync; st.status = r.status || {};
 			layout();
 			st.ref = r.ref || []; st.recipes = r.recipes || []; st.recipesOn = !! r.recipes_on;
 			if ( force || ! st.dirty ) {
@@ -313,6 +334,9 @@
 
 	// ---- Live preview in the canvas ---------------------------------------------
 	function canvasDoc() {
+		// Asked every time: the site editor replaces its canvas.
+		// A canvas without an iframe is the admin page itself: no live preview there, it would restyle the editor.
+		if ( BLOCKS ) { try { var cd = window.TokenForgeEditor && window.TokenForgeEditor.canvas ? window.TokenForgeEditor.canvas() : null; return cd === document ? null : cd; } catch ( e0 ) { return null; } }
 		var f = document.getElementById( 'bricks-builder-iframe' );
 		try { return f && f.contentDocument; } catch ( e ) { return null; }
 	}
@@ -326,6 +350,7 @@
 	function canvasStyle() {
 		var doc = canvasDoc();
 		if ( ! doc ) { return Promise.resolve( null ); }
+		if ( BLOCKS ) { return Promise.resolve( blocksStyle( doc ) ); }
 		var style = doc.getElementById( 'tokenforge-inline-css' );
 		if ( style ) { return Promise.resolve( style ); }
 		var link = doc.getElementById( 'tokenforge-css' );
@@ -343,18 +368,52 @@
 		} ).catch( function () { converting = null; return null; } );
 		return converting;
 	}
+	// Block editor: the canvas style that holds the Global SCSS marker (the TokenForge
+	// stylesheet), or a style the dock owns when the stylesheet has no Global SCSS yet.
+	function blocksStyle( doc ) {
+		var own = doc.getElementById( 'tf-sdock-live' ), hit = null;
+		doc.querySelectorAll( 'style' ).forEach( function ( s ) { if ( ! hit && s !== own && s.textContent.indexOf( MARK ) > -1 ) { hit = s; } } );
+		if ( hit ) { if ( own ) { own.remove(); } return hit; }
+		if ( ! own && doc.body ) {
+			own = doc.createElement( 'style' );
+			own.id = 'tf-sdock-live';
+			own.textContent = '\n' + MARK + '\n';
+			doc.body.appendChild( own ); // the editor's styles are in the canvas body: after them
+		}
+		return own;
+	}
 	function live( css ) {
 		return canvasStyle().then( function ( s ) {
 			if ( ! s ) { return; }
 			var t = s.textContent, i = t.indexOf( '\n' + MARK );
+			if ( BLOCKS ) {
+				// The saved CSS is kept on the style, to put back when Live goes off; the marker always stays.
+				if ( null == s.__tfSaved ) { s.__tfSaved = t; }
+				if ( i < 0 ) { i = t.indexOf( MARK ); }
+				s.textContent = ( i > -1 ? t.slice( 0, i ) : t ).replace( /\s+$/, '' ) + '\n' + MARK + '\n' + css + '\n';
+				return s;
+			}
 			var base = i > -1 ? t.slice( 0, i ) : t.replace( /\s+$/, '' );
 			s.textContent = base + ( css.trim() ? '\n' + MARK + '\n' + css + '\n' : '\n' );
 		} );
+	}
+	// Block editor, after a save: the canvas shows what was saved (also with Live off), and that is the new saved CSS.
+	function blocksSaved( src ) {
+		if ( ! st.enabled ) { return; }
+		api( '/scss-compile', 'POST', { source: src } ).then( function ( r ) {
+			if ( r.error ) { return; }
+			return live( r.css || '' ).then( function ( s ) { if ( s ) { s.__tfSaved = s.textContent; } } );
+		} ).catch( function () {} );
 	}
 	// Put the saved stylesheet back into the canvas.
 	function canvasReload( url, ver ) {
 		var doc = canvasDoc();
 		if ( ! doc ) { return; }
+		if ( BLOCKS ) {
+			var bs = blocksStyle( doc );
+			if ( bs && null != bs.__tfSaved ) { bs.textContent = bs.__tfSaved; }
+			return;
+		}
 		var s = doc.getElementById( 'tokenforge-inline-css' ), link = doc.getElementById( 'tokenforge-css' );
 		var go = function ( u ) {
 			// The canvas has the file with every utility class: stay on it.
@@ -396,7 +455,7 @@
 			if ( 'string' === typeof r.source ) { st.source = r.source; setQuiet( r.source ); }
 			ed.setError( st.status.error );
 			builderClasses( r.synced );
-			canvasReload( r.css_url, r.css_ver );
+			if ( BLOCKS ) { blocksSaved( ed.getValue() ); } else { canvasReload( r.css_url, r.css_ver ); }
 			announce( r.css_ver, r.css_url );
 			renderNotice();
 			renderStatus( syncNote( r ) );
@@ -427,7 +486,7 @@
 		if ( ! st.enabled ) { status( 'Global SCSS is switched off (TokenForge, Global SCSS): it is saved but not added to the stylesheet.', 'warn' ); return; }
 		if ( err ) { status( 'Line ' + ( err.line || '?' ) + ( err.column ? ':' + err.column : '' ) + ': ' + err.message + ( st.dirty ? ' (the last working CSS stays)' : '' ), 'err' ); return; }
 		if ( st.dirty ) { status( 'Unsaved' + ( st.fromBuilder ? ' · changed in the builder, Save keeps it (or save the builder)' : '' ) + ( st.live ? ' · live preview' : '' ) + ( st.sync ? ' · the builder shows it live' : '' ), 'dirty' ); return; }
-		status( 'Saved' + ( flash ? ' · ' + flash : '' ) + ( st.sync ? ' · live sync with builder classes' : ' · builder sync off (TokenForge, Global SCSS)' ), 'ok' );
+		status( 'Saved' + ( flash ? ' · ' + flash : '' ) + ( BLOCKS ? '' : st.sync ? ' · live sync with builder classes' : ' · builder sync off (TokenForge, Global SCSS)' ), 'ok' );
 	}
 	function renderNotice() {
 		if ( ! root ) { return; }
@@ -508,6 +567,12 @@
 		return unref( g.$_globalClasses ) || ( s && unref( s.globalClasses ) ) || null;
 	}
 	function activeClassName() {
+		if ( BLOCKS ) {
+			// The first class of the selected block that has a block here, or its first class.
+			var sel = window.wp && window.wp.data && window.wp.data.select( 'core/block-editor' ), blk = sel && sel.getSelectedBlock && sel.getSelectedBlock();
+			var cls = String( ( blk && blk.attributes && blk.attributes.className ) || '' ).split( /\s+/ ).filter( Boolean ), text = ed ? ed.getValue() : '';
+			return cls.filter( function ( nm ) { return blockAt( text, nm ) > -1; } )[0] || cls[0] || '';
+		}
 		var g = gp();
 		if ( ! g ) { return ''; }
 		var all = builderClassList( g ) || [];
@@ -530,7 +595,7 @@
 	function gotoClass() {
 		if ( ! ed ) { return; }
 		var name = activeClassName();
-		if ( ! name ) { status( 'Select an element with a class (or a class in the selector) first.', 'warn' ); return; }
+		if ( ! name ) { status( BLOCKS ? 'Select a block with a class first.' : 'Select an element with a class (or a class in the selector) first.', 'warn' ); return; }
 		var src = ed.getValue(), at = blockAt( src, name );
 		if ( at > -1 ) { ed.goTo( at ); status( '.' + name ); return; }
 		// No block yet: start one at the end.
@@ -662,7 +727,7 @@
 	setInterval( function () {
 		ticks++;
 		if ( ! window.TokenForgeScssEditor ) { return; }
-		if ( ! root || ! root.isConnected || ! tab.isConnected || ( preview && ! preview.isConnected ) ) { layout(); }
+		if ( ! root || ! root.isConnected || lostTab() || ( preview && ! preview.isConnected ) ) { layout(); }
 		else if ( st.open ) {
 			// Bricks' preview mode hides the dock; keep the padding in step with it.
 			var hidden = preview.classList.contains( 'is-previewing' );
@@ -671,7 +736,22 @@
 		if ( 0 === ticks % 2 ) { hookFrames(); }
 		if ( 0 === ticks % 4 && st.open && st.loaded && ! st.saving && 'visible' === document.visibilityState ) { checkRev(); }
 		liveWatch();
+		if ( BLOCKS ) {
+			// A new canvas (site editor navigation) holds the saved CSS: show the unsaved text there again.
+			var cd = canvasDoc();
+			if ( cd !== lastCanvas ) { lastCanvas = cd; if ( cd && st.dirty && st.live ) { compile(); } }
+		}
 	}, 1000 );
+	var lastCanvas = null;
+	// Block editor: the classes of the text being typed are offered by TokenForge's class field right away.
+	if ( BLOCKS && window.wp && window.wp.hooks && window.wp.hooks.addFilter ) {
+		window.wp.hooks.addFilter( 'tokenforge.editor.classes', 'tokenforge-crucible/dock', function ( rows ) {
+			if ( ! Array.isArray( rows ) || ! st.loaded || ! st.enabled ) { return rows; }
+			var have = {};
+			rows.forEach( function ( r ) { if ( r ) { have[ r[0] ] = 1; } } );
+			return rows.concat( blockNames( st.source ).filter( function ( n ) { return ! have[ n ]; } ).map( function ( n ) { return [ n, '' ]; } ) );
+		} );
+	}
 	function start() {
 		if ( ! window.TokenForgeScssEditor || ! mount() ) { setTimeout( start, 500 ); return; }
 		layout();

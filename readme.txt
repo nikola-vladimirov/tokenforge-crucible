@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.7
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -10,7 +10,7 @@ Add-on for TokenForge: restores Global SCSS, your recipes, builder sync and the 
 
 == Description ==
 
-TokenForge Crucible adds the features the WordPress.org build of TokenForge does not ship: the Global SCSS editor, the SCSS dock in the Bricks builder, Automatic.css custom SCSS import, your own recipes, two-way builder class sync, and Global SCSS in Export, Import and Reset.
+TokenForge Crucible adds the features the WordPress.org build of TokenForge does not ship: the Global SCSS editor, the SCSS dock in the Bricks builder and in the block editor (with TokenForge 0.57.0 or later), Automatic.css custom SCSS import, your own recipes, two-way builder class sync, and Global SCSS in Export, Import and Reset.
 
 Requires TokenForge 0.54.2 or later.
 
@@ -21,6 +21,9 @@ Developed by Prista Digital, https://pristadigital.com
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.4.0 =
+* Block editor: the Global SCSS dock opens in the post and site editor (SCSS button or Alt+Shift+S) with live preview, the classes of your Global SCSS show in the TokenForge class field, and the Global SCSS section is in the TokenForge window there. Needs TokenForge 0.57.0 or later for the block editor; the builder works as before.
 
 = 0.3.7 =
 * Fixes from a full code and security review: builder sync no longer damages Global SCSS with "//" in url() or strings, or with class names like w-1/2; much faster saves with many classes; only administrators pull builder changes into Global SCSS; multisite needs edit_css; 100 KB save limit; the dashboard code editor loads again; safer recipe saves and save conflicts.
