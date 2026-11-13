@@ -1,7 +1,9 @@
 /* TokenForge: Global SCSS dock in the Bricks builder, and in the block editor
  * (TokenForgeDockCfg.platform 'blocks': last row of the editor content area, a
  * button in the editor header, live preview in the editor canvas, no builder
- * class sync).
+ * class sync), and in the other builders TokenForge supports (platform 'builder':
+ * a fixed dock over the bottom of the window, live preview in the canvas that
+ * window.TokenForgeBuilder gives, no builder class sync).
  *
  * A panel docked under the canvas (like Bricks' own CSS panel) with the Global
  * SCSS editor, independent of the TokenForge window:
@@ -28,12 +30,15 @@
 	var MARK = cfg.marker || '/* --- Global SCSS --- */';
 	// The block editor: same dock, no builder class sync, the canvas comes from TokenForgeEditor.canvas().
 	var BLOCKS = 'blocks' === cfg.platform;
+	// Another builder: the canvas and the selected element come from TokenForge's builder tools; nothing of the builder is moved.
+	var BUILDER = 'builder' === cfg.platform, FLAT = BLOCKS || BUILDER;
+	function tb() { return window.TokenForgeBuilder; }
 	var KEY = 'tf-scss-dock-v1', HEAD = 36, MIN_H = 120;
 	var st = {
 		open: false, min: false, max: false, h: 300, w: 460, side: 'bottom', live: true, cheat: false,
 		loaded: false, dirty: false, quiet: false, saving: false, source: '', rev: '',
 		enabled: true, sync: false, status: {}, liveErr: null, ref: [], recipes: [], recipesOn: true,
-		elsewhere: null, cheatData: null, cheatQ: '', cheatKind: ''
+		elsewhere: null, cheatData: null, cheatQ: '', cheatKind: '', lint: false, lintData: []
 	};
 	try { var saved = JSON.parse( window.localStorage.getItem( KEY ) || '{}' ); [ 'open', 'min', 'h', 'w', 'side', 'live', 'cheat' ].forEach( function ( k ) { if ( k in saved ) { st[ k ] = saved[ k ]; } } ); } catch ( e ) {}
 	function remember() {
@@ -53,7 +58,9 @@
 		return String( s == null ? '' : s ).replace( /[&<>"']/g, function ( c ) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ]; } );
 	}
 
+	var Lint = window.TokenForgeScssLint; // assets/admin/scss-lint.js: draws the findings and makes the fix; no Check button without it.
 	var ICON = {
+		check: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
 		code: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>',
 		book: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5"/><path d="M20 19v3H6.5"/><path d="M8 7h8M8 11h6"/></svg>',
 		eye: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
@@ -81,6 +88,7 @@
 				'<div class="tf-sdock-actions">' +
 					'<button type="button" class="tf-sdock-btn tf-sdock-live" data-a="live" title="Live preview in the canvas while you type">' + ICON.eye + '<span>Live</span></button>' +
 					'<button type="button" class="tf-sdock-btn tf-sdock-cheatbtn" data-a="cheat" title="Cheatsheet: classes, variables, mixins, recipes">' + ICON.book + '<span>Cheatsheet</span></button>' +
+					( Lint ? '<button type="button" class="tf-sdock-icon tf-sdock-lintbtn" data-a="lint" title="' + esc( Lint.text.title ) + '" aria-label="' + esc( Lint.text.title ) + '">' + ICON.check + '</button>' : '' ) +
 					'<button type="button" class="tf-sdock-icon tf-sdock-goto" data-a="goto" title="Go to the SCSS of the class selected in ' + ( BLOCKS ? 'the block editor' : 'the builder' ) + '">' + ICON.target + '</button>' +
 					'<button type="button" class="tf-sdock-icon" data-a="side" title="Dock at the bottom, right or left">' + ICON.side + '</button>' +
 					'<button type="button" class="tf-sdock-btn tf-sdock-save" data-a="save" title="Save (Ctrl/Cmd + S in the editor)">Save</button>' +
@@ -97,6 +105,7 @@
 					'<div class="tf-sdock-chips">' + [ [ '', 'All' ], [ 'class', 'Classes' ], [ 'var', 'Variables' ], [ 'mixin', 'Mixins' ], [ 'recipe', 'Recipes' ] ].map( function ( c ) { return '<button type="button" data-kind="' + c[0] + '"' + ( c[0] === st.cheatKind ? ' class="is-on"' : '' ) + '>' + c[1] + '</button>'; } ).join( '' ) + '</div></div>' +
 					'<ul class="tf-sdock-cheat-list" role="listbox"></ul>' +
 				'</aside>' +
+				'<aside class="tf-sdock-cheat tf-sdock-lint" aria-live="polite" hidden></aside>' +
 			'</div>';
 		tab = document.createElement( 'button' );
 		tab.type = 'button';
@@ -109,6 +118,7 @@
 			root.className += ' is-blocks';
 			tab.className = 'components-button is-compact tf-sdock-launch';
 		}
+		if ( BUILDER ) { root.className += ' is-builder'; tab.className += ' is-builder'; }
 
 		// Keys typed here are for the editor, not for Bricks' shortcuts (Delete, Ctrl+Z, Ctrl+S …).
 		[ 'keydown', 'keyup', 'keypress' ].forEach( function ( t ) { root.addEventListener( t, function ( e ) { e.stopPropagation(); } ); } );
@@ -129,7 +139,7 @@
 	}
 
 	function mount() {
-		var p = BLOCKS ? document.querySelector( '.interface-interface-skeleton__content' ) : document.getElementById( 'bricks-preview' );
+		var p = BLOCKS ? document.querySelector( '.interface-interface-skeleton__content' ) : BUILDER ? ( tb() ? document.body : null ) : document.getElementById( 'bricks-preview' ); // no builder tools (yet): no dock
 		// The block editor: only where the editor header is (the launcher lives there), not on the Widgets screen.
 		if ( ! p || ( BLOCKS && ! document.querySelector( '.editor-header__settings' ) ) ) { return false; }
 		if ( ! root ) { build(); }
@@ -147,17 +157,32 @@
 	}
 	// The launcher is missing while the editor header exists (the editor draws its header again).
 	function lostTab() { return BLOCKS ? !! document.querySelector( '.editor-header__settings' ) && ! tab.isConnected : ! tab.isConnected; }
-	function unpad( p ) { p.style.paddingBottom = ''; p.style.paddingLeft = ''; p.style.paddingRight = ''; p.style.boxSizing = ''; }
+	function unpad( p ) { if ( BUILDER ) { return; } p.style.paddingBottom = ''; p.style.paddingLeft = ''; p.style.paddingRight = ''; p.style.boxSizing = ''; }
 
 	function height() {
 		if ( st.min ) { return HEAD; }
-		var room = preview ? preview.getBoundingClientRect().height : 600;
+		var room = BUILDER ? window.innerHeight : preview ? preview.getBoundingClientRect().height : 600;
 		var h = st.max ? room * 0.72 : st.h;
 		return Math.round( Math.max( MIN_H, Math.min( h, room - 80 ) ) );
 	}
 	function width() {
-		var room = preview ? preview.getBoundingClientRect().width : 1200;
+		var room = BUILDER ? window.innerWidth : preview ? preview.getBoundingClientRect().width : 1200;
 		return Math.round( Math.max( 280, Math.min( st.max ? room * 0.6 : st.w, room - 240 ) ) );
+	}
+	// Other builders: the dock and its tab span the canvas only, so the builder's own panels stay free.
+	function overCanvas() {
+		var fe = null;
+		try { fe = tb().canvasDoc().defaultView.frameElement; } catch ( e ) { fe = null; }
+		var r = fe ? fe.getBoundingClientRect() : null, ok = r && r.width > 200;
+		// Clamped to the window: a canvas can be wider than the window (Elementor scrolls it sideways).
+		root.style.left = ok ? Math.max( 0, Math.round( r.left ) ) + 'px' : '';
+		root.style.right = ok ? Math.max( 0, Math.round( window.innerWidth - r.right ) ) + 'px' : '';
+		tab.style.left = ok ? Math.round( ( Math.max( 0, r.left ) + Math.min( window.innerWidth, r.right ) ) / 2 - 40 ) + 'px' : '';
+		// TokenForge's window button floats at the bottom, above the dock: sit just above it instead of under it.
+		var tg = document.querySelector( '.tf-dock-toggle' ), t = tg ? tg.getBoundingClientRect() : null;
+		var lift = t && t.width && t.top > window.innerHeight - 120 && t.right > ( ok ? r.left : 0 ) && t.left < ( ok ? r.right : window.innerWidth ) ? Math.round( window.innerHeight - t.top + 6 ) : 0;
+		root.style.bottom = lift ? lift + 'px' : '';
+		tab.style.bottom = lift ? lift + 'px' : '';
 	}
 	// Place the dock and push the canvas up by its height.
 	function layout() {
@@ -166,20 +191,21 @@
 		root.hidden = hidden;
 		tab.hidden = ! BLOCKS && ( ! hidden || ! cfg.tab || preview.classList.contains( 'is-previewing' ) );
 		if ( BLOCKS ) { tab.setAttribute( 'aria-pressed', hidden ? 'false' : 'true' ); }
+		if ( BUILDER ) { overCanvas(); }
 		if ( hidden ) { unpad( preview ); return; }
 		// The block editor's content area is a column: the dock is its last row (bottom only).
-		var side = ! BLOCKS && ( 'left' === st.side || 'right' === st.side ) ? st.side : 'bottom';
+		var side = ! FLAT && ( 'left' === st.side || 'right' === st.side ) ? st.side : 'bottom';
 		root.classList.toggle( 'is-min', st.min );
 		root.classList.toggle( 'is-max', st.max && ! st.min );
 		root.classList.toggle( 'is-left', 'left' === side );
 		root.classList.toggle( 'is-right', 'right' === side );
 		unpad( preview );
-		if ( ! BLOCKS ) { preview.style.boxSizing = 'border-box'; }
+		if ( ! FLAT ) { preview.style.boxSizing = 'border-box'; }
 		if ( 'bottom' === side ) {
 			var h = height();
 			root.style.width = '';
 			root.style.height = h + 'px';
-			if ( ! BLOCKS ) { preview.style.paddingBottom = h + 'px'; }
+			if ( ! FLAT ) { preview.style.paddingBottom = h + 'px'; }
 		} else {
 			// Beside the canvas: full height (just the header when minimised).
 			var w = width();
@@ -190,6 +216,8 @@
 		root.querySelector( '.tf-sdock-live' ).classList.toggle( 'is-on', st.live );
 		root.querySelector( '.tf-sdock-cheatbtn' ).classList.toggle( 'is-on', st.cheat );
 		root.querySelector( '.tf-sdock-cheat' ).hidden = ! st.cheat || st.min;
+		root.querySelector( '.tf-sdock-lint' ).hidden = ! st.lint || st.min;
+		if ( Lint ) { root.querySelector( '.tf-sdock-lintbtn' ).classList.toggle( 'is-on', st.lint ); }
 		if ( ed ) { ed.refresh(); }
 	}
 
@@ -213,7 +241,7 @@
 	function setQuiet( v ) { st.quiet = true; ed.setValue( v ); st.quiet = false; }
 	function fetchSource( force ) {
 		return api( '/scss' ).then( function ( r ) {
-			st.enabled = !! r.enabled; st.sync = ! BLOCKS && !! r.sync; st.status = r.status || {};
+			st.enabled = !! r.enabled; st.sync = ! FLAT && !! r.sync; st.status = r.status || {};
 			layout();
 			st.ref = r.ref || []; st.recipes = r.recipes || []; st.recipesOn = !! r.recipes_on;
 			if ( force || ! st.dirty ) {
@@ -337,6 +365,8 @@
 		// Asked every time: the site editor replaces its canvas.
 		// A canvas without an iframe is the admin page itself: no live preview there, it would restyle the editor.
 		if ( BLOCKS ) { try { var cd = window.TokenForgeEditor && window.TokenForgeEditor.canvas ? window.TokenForgeEditor.canvas() : null; return cd === document ? null : cd; } catch ( e0 ) { return null; } }
+		// The top document is never the canvas: the preview would restyle the builder.
+		if ( BUILDER ) { try { var bd = tb() ? tb().canvasDoc() : null; return bd && bd !== document ? bd : null; } catch ( e1 ) { return null; } }
 		var f = document.getElementById( 'bricks-builder-iframe' );
 		try { return f && f.contentDocument; } catch ( e ) { return null; }
 	}
@@ -354,7 +384,8 @@
 		var style = doc.getElementById( 'tokenforge-inline-css' );
 		if ( style ) { return Promise.resolve( style ); }
 		var link = doc.getElementById( 'tokenforge-css' );
-		if ( ! link ) { return Promise.resolve( null ); }
+		// A builder canvas without the TokenForge stylesheet: a style with the marker, or one the dock owns.
+		if ( ! link ) { return Promise.resolve( BUILDER ? blocksStyle( doc ) : null ); }
 		if ( converting ) { return converting; }
 		converting = fetch( link.href, { credentials: 'same-origin', cache: 'no-store' } ).then( function ( r ) { return r.text(); } ).then( function ( css ) {
 			converting = null;
@@ -415,6 +446,9 @@
 			return;
 		}
 		var s = doc.getElementById( 'tokenforge-inline-css' ), link = doc.getElementById( 'tokenforge-css' );
+		// shortcut: a canvas without the TokenForge stylesheet only loses the dock's own preview when Live goes off; reload the builder to see the saved CSS there.
+		var own = BUILDER && ! st.live && doc.getElementById( 'tf-sdock-live' );
+		if ( own ) { own.textContent = '\n' + MARK + '\n'; }
 		var go = function ( u ) {
 			// The canvas has the file with every utility class: stay on it.
 			if ( link && /\/tokenforge-full\.css/.test( link.href ) ) { u = u.replace( /\/tokenforge\.css/, '/tokenforge-full.css' ); }
@@ -486,7 +520,7 @@
 		if ( ! st.enabled ) { status( 'Global SCSS is switched off (TokenForge, Global SCSS): it is saved but not added to the stylesheet.', 'warn' ); return; }
 		if ( err ) { status( 'Line ' + ( err.line || '?' ) + ( err.column ? ':' + err.column : '' ) + ': ' + err.message + ( st.dirty ? ' (the last working CSS stays)' : '' ), 'err' ); return; }
 		if ( st.dirty ) { status( 'Unsaved' + ( st.fromBuilder ? ' · changed in the builder, Save keeps it (or save the builder)' : '' ) + ( st.live ? ' · live preview' : '' ) + ( st.sync ? ' · the builder shows it live' : '' ), 'dirty' ); return; }
-		status( 'Saved' + ( flash ? ' · ' + flash : '' ) + ( BLOCKS ? '' : st.sync ? ' · live sync with builder classes' : ' · builder sync off (TokenForge, Global SCSS)' ), 'ok' );
+		status( 'Saved' + ( flash ? ' · ' + flash : '' ) + ( FLAT ? '' : st.sync ? ' · live sync with builder classes' : ' · builder sync off (TokenForge, Global SCSS)' ), 'ok' );
 	}
 	function renderNotice() {
 		if ( ! root ) { return; }
@@ -496,6 +530,22 @@
 		n.innerHTML = '<span>Global SCSS was changed somewhere else (the dashboard or a builder class sync) while you had unsaved edits.</span>' +
 			'<button type="button" class="tf-sdock-btn" data-a="theirs">Load that version</button>' +
 			'<button type="button" class="tf-sdock-btn" data-a="mine">Overwrite with mine</button>';
+	}
+
+	// ---- Token lint drawer (takes the place of the cheatsheet while it is open) --------
+	function lintRun() {
+		var box = root.querySelector( '.tf-sdock-lint' );
+		box.textContent = Lint.text.busy;
+		api( '/lint', 'POST', { source: st.source } ).then( function ( r ) {
+			st.lintData = r && r.ok ? r.findings || [] : [];
+			box.innerHTML = r && r.ok ? Lint.html( st.lintData ) : esc( ( r && r.error ) || Lint.text.failed );
+		} ).catch( function () { box.textContent = Lint.text.failed; } );
+	}
+	function lintFix( which ) {
+		var out = Lint.apply( st.source, 'all' === which ? st.lintData : [ st.lintData[ parseInt( which, 10 ) ] ] );
+		// changed(): unsaved and live preview, as after typing (a plain textarea does not report setValue).
+		if ( out !== st.source ) { ed.setValue( out ); changed( out ); }
+		lintRun();
 	}
 
 	// ---- Cheatsheet drawer -------------------------------------------------------
@@ -567,10 +617,11 @@
 		return unref( g.$_globalClasses ) || ( s && unref( s.globalClasses ) ) || null;
 	}
 	function activeClassName() {
-		if ( BLOCKS ) {
-			// The first class of the selected block that has a block here, or its first class.
-			var sel = window.wp && window.wp.data && window.wp.data.select( 'core/block-editor' ), blk = sel && sel.getSelectedBlock && sel.getSelectedBlock();
+		if ( FLAT ) {
+			// The first class of the selected block (or element) that has a block here, or its first class.
+			var sel = window.wp && window.wp.data && window.wp.data.select( 'core/block-editor' ), blk = ! BUILDER && sel && sel.getSelectedBlock && sel.getSelectedBlock();
 			var cls = String( ( blk && blk.attributes && blk.attributes.className ) || '' ).split( /\s+/ ).filter( Boolean ), text = ed ? ed.getValue() : '';
+			if ( BUILDER ) { try { cls = [].concat( tb().classes() || [] ).map( String ); } catch ( e ) { cls = []; } }
 			return cls.filter( function ( nm ) { return blockAt( text, nm ) > -1; } )[0] || cls[0] || '';
 		}
 		var g = gp();
@@ -617,6 +668,8 @@
 		if ( cp ) { e.stopPropagation(); var ci = shown[ parseInt( cp.getAttribute( 'data-copy' ), 10 ) ]; if ( ci ) { copy( ci.copy, cp ); } return; }
 		var li = e.target.closest( '.tf-sdock-cheat-list li[data-i]' );
 		if ( li ) { pick( parseInt( li.getAttribute( 'data-i' ), 10 ) ); return; }
+		var fx = e.target.closest( '[data-lint-fix]' );
+		if ( fx ) { lintFix( fx.getAttribute( 'data-lint-fix' ) ); return; }
 		var b = e.target.closest( '[data-a]' );
 		if ( ! b ) { return; }
 		var a = b.getAttribute( 'data-a' );
@@ -631,8 +684,12 @@
 			if ( st.live && st.dirty ) { compile(); } else if ( ! st.live ) { canvasReload(); }
 		}
 		else if ( 'cheat' === a ) {
-			st.cheat = ! st.cheat; st.min = false; remember(); layout();
+			st.cheat = ! st.cheat; st.lint = false; st.min = false; remember(); layout();
 			if ( st.cheat ) { loadCheat(); setTimeout( function () { var q = root.querySelector( '.tf-sdock-cheat-q' ); if ( q ) { q.focus(); } }, 30 ); }
+		}
+		else if ( 'lint' === a ) {
+			st.lint = ! st.lint; st.cheat = false; st.min = false; remember(); layout();
+			if ( st.lint ) { lintRun(); }
 		}
 		else if ( 'theirs' === a ) { fetchSource( true ).then( function () { if ( st.live ) { compile(); } } ); }
 		else if ( 'mine' === a ) { save( true ); }
@@ -645,7 +702,7 @@
 		var shield = document.createElement( 'div' );
 		shield.className = 'tf-sdock-shield';
 		document.body.appendChild( shield );
-		var box = preview.getBoundingClientRect();
+		var box = BUILDER ? { left: 0, right: window.innerWidth, bottom: window.innerHeight } : preview.getBoundingClientRect();
 		var move = function ( ev ) {
 			if ( 'left' === st.side ) { st.w = Math.round( ev.clientX - box.left ); } else if ( 'right' === st.side ) { st.w = Math.round( box.right - ev.clientX ); } else { st.h = Math.round( box.bottom - ev.clientY ); }
 			st.max = false; layout();
@@ -733,11 +790,13 @@
 			var hidden = preview.classList.contains( 'is-previewing' );
 			if ( hidden !== root.hidden ) { layout(); }
 		}
+		// Other builders: a panel opened or closed moves the canvas; keep the dock over it.
+		if ( BUILDER && root && root.isConnected ) { overCanvas(); }
 		if ( 0 === ticks % 2 ) { hookFrames(); }
 		if ( 0 === ticks % 4 && st.open && st.loaded && ! st.saving && 'visible' === document.visibilityState ) { checkRev(); }
 		liveWatch();
-		if ( BLOCKS ) {
-			// A new canvas (site editor navigation) holds the saved CSS: show the unsaved text there again.
+		if ( FLAT ) {
+			// A new canvas (site editor navigation, a builder that loads its canvas again) holds the saved CSS: show the unsaved text there again.
 			var cd = canvasDoc();
 			if ( cd !== lastCanvas ) { lastCanvas = cd; if ( cd && st.dirty && st.live ) { compile(); } }
 		}

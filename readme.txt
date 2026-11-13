@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,13 +14,21 @@ TokenForge Crucible adds the features the WordPress.org build of TokenForge does
 
 Requires TokenForge 0.54.2 or later.
 
-Deleting the add-on keeps your Global SCSS, recipes and sync settings in the database, so reinstalling it (or moving to a TokenForge build that has Global SCSS) brings them back. To clear the SCSS and recipes first, use TokenForge Reset with Global SCSS and Recipes ticked.
+Deleting the add-on keeps your Global SCSS, recipes and sync settings in the database, so reinstalling it (or moving to a TokenForge build that has Global SCSS) brings them back. The versions you saved by name stay too (the options tokenforge_crucible_versions and tokenforge_crucible_version_1, _2 and so on), and so does the last site report (the option tokenforge_crucible_site_report). Your SCSS files stay as well (the options tokenforge_crucible_scss_files, tokenforge_crucible_page_map, tokenforge_crucible_page_css_built and one tokenforge_crucible_page_css_ option for each page file); TokenForge Reset with Global SCSS ticked removes them. To clear the SCSS and recipes first, use TokenForge Reset with Global SCSS and Recipes ticked.
 
 Developed by Prista Digital, https://pristadigital.com
 
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.5.0 =
+* Versions: every Global SCSS or recipe save can be undone; save named versions, see what changed and restore only the parts you tick.
+* Token lint: Check finds hard-coded values that have a token, with one-click fixes; "Scan the site" also reads the custom CSS of the builder.
+* Site report: unused Global SCSS classes, duplicate classes and the size of each class.
+* SCSS files: split the Global SCSS into files loaded with @use "name";, and page files that load only on the pages, templates or post types you choose.
+* AI abilities: an AI agent can read, check and save Global SCSS classes using tokens, lint a page, run the site report and save a version.
+* The SCSS dock also opens in Etch, Oxygen, Breakdance, Elementor and Divi (needs a TokenForge version with the builder hook).
 
 = 0.4.0 =
 * Block editor: the Global SCSS dock opens in the post and site editor (SCSS button or Alt+Shift+S) with live preview, the classes of your Global SCSS show in the TokenForge class field, and the Global SCSS section is in the TokenForge window there. Needs TokenForge 0.57.0 or later for the block editor; the builder works as before.

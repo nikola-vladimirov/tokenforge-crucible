@@ -43,6 +43,8 @@ add_filter(
 				'sync'        => $sync['sync'],
 				'sync_pull'   => $sync['sync_pull'],
 				'sync_create' => $sync['sync_create'],
+				// Since 0.6.0. An older Crucible reads the keys above and leaves this one alone.
+				'files'       => tokenforge_crucible_scss_files(),
 			)
 		);
 		$rec             = isset( $data['recipes'] ) && is_array( $data['recipes'] ) ? $data['recipes'] : array();
@@ -67,6 +69,15 @@ add_action(
 			$in = $data['scss'];
 			if ( isset( $in['source'] ) && is_string( $in['source'] ) && strlen( $in['source'] ) <= TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES ) {
 				update_option( tokenforge_crucible_scss_option(), str_replace( "\r\n", "\n", $in['source'] ), false );
+			}
+			// Checked like a saved file (names, sizes, pages). A file made before 0.6.0 has no files: the saved ones stay.
+			if ( isset( $in['files'] ) && is_array( $in['files'] ) ) {
+				// Page IDs are those of the site the file came from: only the ones that are a post here stay (post types carry over).
+				$in_files = tokenforge_crucible_scss_files_clean( $in['files'] );
+				foreach ( $in_files as $name => $file ) {
+					$in_files[ $name ]['pages'] = array_values( array_filter( $file['pages'], 'get_post' ) );
+				}
+				tokenforge_crucible_scss_files_store( $in_files );
 			}
 			if ( array_key_exists( 'enabled', $in ) ) {
 				update_option( 'tokenforge_crucible_scss_enabled', ! empty( $in['enabled'] ), false );
@@ -111,6 +122,7 @@ add_action(
 		// Settings keep the Global SCSS and your recipes, as in 0.53.7; these two parts clear them.
 		if ( in_array( 'scss', $parts, true ) ) {
 			update_option( tokenforge_crucible_scss_option(), '', false );
+			tokenforge_crucible_scss_files_store( array() );
 			\TokenForge\Css_Generator::get_instance()->generate();
 		}
 		if ( in_array( 'recipes', $parts, true ) ) {

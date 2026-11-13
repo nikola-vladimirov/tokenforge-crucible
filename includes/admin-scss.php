@@ -45,7 +45,10 @@ function tokenforge_crucible_scss_enqueue( $hook ) {
 
 	wp_enqueue_script( 'tokenforge-crucible-scss-outline', $url . 'scss-outline.js', array(), TOKENFORGE_CRUCIBLE_VERSION, true );
 	wp_enqueue_script( 'tokenforge-crucible-scss-editor', $url . 'scss-editor.js', array( 'tokenforge-crucible-scss-outline' ), TOKENFORGE_CRUCIBLE_VERSION, true );
-	wp_enqueue_script( 'tokenforge-crucible-sections', $url . 'crucible-sections.js', array( 'wp-hooks', 'wp-i18n', 'tokenforge-crucible-scss-editor' ), TOKENFORGE_CRUCIBLE_VERSION, true );
+	// The token lint (findings and fixes), shared with the builder dock.
+	wp_enqueue_script( 'tokenforge-crucible-scss-lint', $url . 'scss-lint.js', array( 'wp-i18n' ), TOKENFORGE_CRUCIBLE_VERSION, true );
+	wp_set_script_translations( 'tokenforge-crucible-scss-lint', 'tokenforge-crucible', plugin_dir_path( TOKENFORGE_CRUCIBLE_FILE ) . 'languages' );
+	wp_enqueue_script( 'tokenforge-crucible-sections', $url . 'crucible-sections.js', array( 'wp-hooks', 'wp-i18n', 'tokenforge-crucible-scss-editor', 'tokenforge-crucible-scss-lint' ), TOKENFORGE_CRUCIBLE_VERSION, true );
 	wp_set_script_translations( 'tokenforge-crucible-sections', 'tokenforge-crucible', plugin_dir_path( TOKENFORGE_CRUCIBLE_FILE ) . 'languages' );
 
 	wp_localize_script(
@@ -86,7 +89,10 @@ function tokenforge_crucible_window_enqueue() {
 
 	wp_enqueue_script( 'tokenforge-crucible-scss-outline', $url . 'scss-outline.js', array(), TOKENFORGE_CRUCIBLE_VERSION, true );
 	wp_enqueue_script( 'tokenforge-crucible-scss-editor', $url . 'scss-editor.js', array( 'tokenforge-crucible-scss-outline' ), TOKENFORGE_CRUCIBLE_VERSION, true );
-	wp_enqueue_script( 'tokenforge-crucible-sections', $url . 'crucible-sections.js', array( 'wp-hooks', 'wp-i18n', 'tokenforge-crucible-scss-editor' ), TOKENFORGE_CRUCIBLE_VERSION, true );
+	// The token lint (findings and fixes), shared with the builder dock.
+	wp_enqueue_script( 'tokenforge-crucible-scss-lint', $url . 'scss-lint.js', array( 'wp-i18n' ), TOKENFORGE_CRUCIBLE_VERSION, true );
+	wp_set_script_translations( 'tokenforge-crucible-scss-lint', 'tokenforge-crucible', plugin_dir_path( TOKENFORGE_CRUCIBLE_FILE ) . 'languages' );
+	wp_enqueue_script( 'tokenforge-crucible-sections', $url . 'crucible-sections.js', array( 'wp-hooks', 'wp-i18n', 'tokenforge-crucible-scss-editor', 'tokenforge-crucible-scss-lint' ), TOKENFORGE_CRUCIBLE_VERSION, true );
 	wp_set_script_translations( 'tokenforge-crucible-sections', 'tokenforge-crucible', plugin_dir_path( TOKENFORGE_CRUCIBLE_FILE ) . 'languages' );
 	wp_localize_script(
 		'tokenforge-crucible-sections',

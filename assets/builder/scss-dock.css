@@ -51,7 +51,8 @@
 #tf-sdock:not(.is-left):not(.is-right):not(.is-min) .tf-sdock-status:not(:empty) { padding-top: 4px; }
 #tf-sdock:not(.is-left):not(.is-right):not(.is-min) .tf-sdock-title { margin-right: auto; }
 #tf-sdock.is-min .tf-sdock-minbtn svg { transform: scaleY(-1); }
-#tf-sdock.is-min .tf-sdock-live, #tf-sdock.is-min .tf-sdock-cheatbtn { display: none; }
+#tf-sdock.is-min .tf-sdock-live, #tf-sdock.is-min .tf-sdock-cheatbtn, #tf-sdock.is-min .tf-sdock-lintbtn { display: none; }
+#tf-sdock .tf-sdock-icon.is-on { background: var(--sd-accent); color: var(--sd-accent-ink); }
 
 /* Notice (changed elsewhere) */
 .tf-sdock-notice { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 10px; background: var(--builder-bg-warning, rgba(255,149,0,.1)); border-bottom: 1px solid var(--sd-line); color: var(--sd-text); font-size: 12px; }
@@ -101,6 +102,16 @@
 
 .tf-sdock-cheat { flex: 0 0 340px; max-width: 45%; display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--sd-line); background: var(--sd-bg-2); }
 .tf-sdock-cheat[hidden] { display: none; }
+/* Token lint drawer: the cheatsheet's box, with the findings of scss-lint.js */
+.tf-sdock-lint { overflow: auto; padding: 8px 10px; font-size: 12px; scrollbar-width: thin; }
+.tf-sdock-lint p { margin: 0 0 8px; color: var(--sd-muted); }
+.tf-sdock-lint .tf-lint-list { margin: 0; padding: 0; list-style: none; }
+.tf-sdock-lint .tf-lint-list li { margin: 0; padding: 5px 0; border-top: 1px solid var(--sd-line); }
+.tf-sdock-lint code { padding: 0; background: none; color: var(--sd-text); font-family: var(--sd-mono); font-size: 12px; }
+.tf-sdock-lint .tf-lint-near { display: block; color: var(--sd-muted); }
+#tf-sdock .tf-lint-btn { all: unset; display: inline-block; padding: 2px 7px; border-radius: var(--sd-radius); background: var(--sd-bg-3); color: var(--sd-text); cursor: pointer; font-size: 11px; font-weight: 600; }
+#tf-sdock .tf-lint-btn:hover { background: var(--sd-bg-4); }
+#tf-sdock .tf-lint-btn:focus-visible { outline: 2px solid var(--sd-accent); outline-offset: 1px; }
 .tf-sdock-cheat-head { padding: 8px; border-bottom: 1px solid var(--sd-line); display: flex; flex-direction: column; gap: 6px; }
 #tf-sdock .tf-sdock-cheat-q { all: unset; box-sizing: border-box; width: 100%; height: 28px; padding: 0 8px; border-radius: var(--sd-radius); background: var(--sd-bg); border: 1px solid var(--sd-line); color: var(--sd-text); font-size: 12px; }
 #tf-sdock .tf-sdock-cheat-q:focus { border-color: var(--sd-accent); }
@@ -139,7 +150,7 @@
 #tf-sdock.is-left .tf-sdock-body, #tf-sdock.is-right .tf-sdock-body { flex-direction: column; }
 #tf-sdock.is-left .tf-sdock-cheat, #tf-sdock.is-right .tf-sdock-cheat { flex: 0 0 40%; max-width: none; border-left: 0; border-top: 1px solid var(--sd-line); }
 #tf-sdock.is-left .tf-sdock-head, #tf-sdock.is-right .tf-sdock-head { flex-wrap: wrap; height: auto; min-height: 36px; flex: 0 0 auto; row-gap: 2px; padding-block: 5px; }
-#tf-sdock.is-left .tf-sdock-status, #tf-sdock.is-right .tf-sdock-status { order: 3; flex: 1 1 100%; padding-inline: 6px; }
+#tf-sdock.is-left .tf-sdock-status, #tf-sdock.is-right .tf-sdock-status { order: 3; flex: 1 1 100%; white-space: pre-wrap; max-height: 72px; overflow: auto; padding-inline: 6px; } /* side docks are narrow: wrap the error so it can be read */
 #tf-sdock.is-left .tf-sdock-btn span, #tf-sdock.is-right .tf-sdock-btn span { display: none; }
 #tf-sdock.is-left .tf-sdock-save span, #tf-sdock.is-right .tf-sdock-save span { display: inline; }
 
@@ -155,3 +166,8 @@ body:not(.tf-be-dark) #tf-sdock.is-blocks .tf-sdock-status.is-warn { color: #8a5
 /* The launcher in the editor header, beside the TokenForge button */
 .components-button.tf-sdock-launch { gap: 6px; margin-right: 4px; font-weight: 600; }
 .components-button.tf-sdock-launch[aria-pressed="true"] { color: var(--wp-admin-theme-color, #3858e9); }
+
+/* Other builders (through TokenForge): the dock floats over the bottom of the window, nothing of the builder is moved */
+#tf-sdock.is-builder { position: fixed; z-index: 99990; }
+#tf-sdock.is-builder [data-a="side"] { display: none; }
+.tf-sdock-tab.is-builder { position: fixed; left: calc(50% - 40px); z-index: 99990; }

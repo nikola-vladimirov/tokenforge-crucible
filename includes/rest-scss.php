@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function tokenforge_crucible_scss_status( $source ) {
-	$result = \TokenForge\Scss::compile( $source );
+	$result = tokenforge_crucible_compile( $source );
 
 	return array(
 		'ok'    => null === $result['error'],
@@ -34,13 +34,29 @@ function tokenforge_crucible_scss_reference() {
 }
 
 /**
+ * Stores the Global SCSS: a history snapshot first (so the save can be undone), then the
+ * source, the builder class sync and the stylesheet.
+ *
+ * @param string $source SCSS source.
+ * @return array The result of the builder class sync.
+ */
+function tokenforge_crucible_scss_store( $source ) {
+	// A save of the same text changes nothing, so it needs no snapshot.
+	if ( (string) get_option( tokenforge_crucible_scss_option(), '' ) !== $source ) {
+		tokenforge_crucible_snapshot();
+	}
+	update_option( tokenforge_crucible_scss_option(), $source, false );
+	$sync = TokenForgeCrucible\Scss_Sync::push();
+	\TokenForge\Css_Generator::get_instance()->generate();
+
+	return $sync;
+}
+
+/**
  * Registers the dock routes.
  */
 function tokenforge_crucible_register_dock_routes() {
-	// Same rule as TokenForge's CSS writes: on multisite a site admin also needs edit_css.
-	$permission = static function () {
-		return current_user_can( 'manage_options' ) && ( ! is_multisite() || current_user_can( 'edit_css' ) );
-	};
+	$permission = 'tokenforge_crucible_can_edit_scss';
 
 	register_rest_route(
 		'tokenforge-crucible/v1',
@@ -77,6 +93,7 @@ function tokenforge_crucible_register_dock_routes() {
 			'methods'             => 'POST',
 			'permission_callback' => $permission,
 			'callback'            => static function ( $request ) {
+				tokenforge_crucible_snapshot();
 				tokenforge_crucible_sync_save( (array) $request->get_json_params() );
 				$sync = tokenforge_crucible_sync_settings();
 
@@ -172,6 +189,7 @@ function tokenforge_crucible_register_dock_routes() {
 				$flagged   = isset( $body['enabled'] );
 
 				if ( $flagged ) {
+					tokenforge_crucible_snapshot();
 					update_option( 'tokenforge_crucible_scss_enabled', ! empty( $body['enabled'] ), false );
 				}
 
@@ -217,9 +235,7 @@ function tokenforge_crucible_register_dock_routes() {
 					);
 				}
 
-				update_option( tokenforge_crucible_scss_option(), $source, false );
-				$sync = TokenForgeCrucible\Scss_Sync::push();
-				$generator->generate();
+				$sync = tokenforge_crucible_scss_store( $source );
 				// The push may have rewritten the source.
 				$source = (string) get_option( tokenforge_crucible_scss_option(), '' );
 

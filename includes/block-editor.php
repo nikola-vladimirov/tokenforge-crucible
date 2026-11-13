@@ -79,7 +79,9 @@ function tokenforge_crucible_editor_classes( $rows ) {
 	}
 
 	// Compiling is slow: once per saved source and per TokenForge stylesheet (classes built from its tokens change with it).
-	$sig    = md5( TOKENFORGE_CRUCIBLE_VERSION . '|' . \TokenForge\Css_Generator::get_instance()->version() . '|' . $source );
+	// The source with its files put in, so a changed file changes the list too.
+	$bundle = tokenforge_crucible_bundle( $source );
+	$sig    = md5( TOKENFORGE_CRUCIBLE_VERSION . '|' . \TokenForge\Css_Generator::get_instance()->version() . '|' . $bundle['scss'] );
 	$cached = get_transient( 'tokenforge_crucible_editor_classes' );
 	if ( is_array( $cached ) && isset( $cached['sig'], $cached['rows'] ) && $sig === $cached['sig'] && is_array( $cached['rows'] ) ) {
 		$mine = $cached['rows'];

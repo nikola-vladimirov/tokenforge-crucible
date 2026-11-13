@@ -19,6 +19,16 @@ function tokenforge_crucible_sync_option() {
 }
 
 /**
+ * Whether the current user may change the Global SCSS, your recipes and their versions.
+ * Same rule as TokenForge's CSS writes: on multisite a site admin also needs edit_css.
+ *
+ * @return bool
+ */
+function tokenforge_crucible_can_edit_scss() {
+	return current_user_can( 'manage_options' ) && ( ! is_multisite() || current_user_can( 'edit_css' ) );
+}
+
+/**
  * Returns the settings the SCSS sync works with.
  *
  * TokenForge's own Scss settings are merged with the add-on's SCSS source and
@@ -109,19 +119,54 @@ function tokenforge_crucible_scss_migrate() {
 const TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES = 102400;
 
 /**
- * Compiles SCSS unless it is over the size cap, so one request cannot tie up PHP.
+ * Compiles SCSS with the saved files its @use lines name put in, unless it is over the size
+ * cap, so one request cannot tie up PHP. An error says which file and line it is in.
  *
- * @param string $source SCSS source.
- * @return array Same keys as TokenForge's Scss::compile(): css and error.
+ * @param string     $source SCSS source.
+ * @param string     $own    Name of the file the source is, '' for the Global SCSS or any other text.
+ * @param array|null $files  Files to use instead of the saved ones (to check a file before it is saved).
+ * @return array Same keys as TokenForge's Scss::compile(): css and error (with "file" when files were put in).
  */
-function tokenforge_crucible_compile( $source ) {
+function tokenforge_crucible_compile( $source, $own = '', $files = null ) {
 	if ( strlen( $source ) > TOKENFORGE_CRUCIBLE_SCSS_MAX_BYTES ) {
 		return array(
 			'css'   => '',
 			'error' => 'SCSS is larger than 100 KB.',
 		);
 	}
-	return \TokenForge\Scss::compile( $source );
+	$own    = (string) $own;
+	$bundle = tokenforge_crucible_bundle( $source, $own, $files );
+	if ( null === $bundle['error'] && strlen( $bundle['scss'] ) > TOKENFORGE_CRUCIBLE_SCSS_BUNDLE_MAX_BYTES ) {
+		$bundle['error'] = array(
+			'message' => __( 'The SCSS with its files is larger than 300 KB.', 'tokenforge-crucible' ),
+			'line'    => 0,
+			'column'  => 0,
+			'file'    => $own,
+		);
+	}
+	if ( null !== $bundle['error'] ) {
+		$r = array(
+			'css'   => '',
+			'error' => $bundle['error'],
+		);
+	} else {
+		$r = \TokenForge\Scss::compile( $bundle['scss'] );
+		// The compiler counts lines in the bundle: give the file and the line the text came from.
+		if ( is_array( $r['error'] ) && $bundle['map'] && isset( $r['error']['line'], $bundle['map'][ (int) $r['error']['line'] - 1 ] ) ) {
+			list( $r['error']['file'], $r['error']['line'] ) = $bundle['map'][ (int) $r['error']['line'] - 1 ];
+		}
+		// A partial that leaves a block open fails at the end of the bundle: name that partial instead.
+		$open = is_array( $r['error'] ) && $bundle['map'] ? tokenforge_crucible_bundle_open_block( $bundle, $own ) : null;
+		if ( $open ) {
+			list( $r['error']['file'], $r['error']['line'] ) = $open;
+		}
+	}
+	// An error in another file than the one being compiled names that file.
+	if ( is_array( $r['error'] ) && isset( $r['error']['file'], $r['error']['message'] ) && $own !== $r['error']['file'] ) {
+		/* translators: 1: error message, 2: file name, 3: line number. */
+		$r['error']['message'] = sprintf( __( '%1$s (in the file "%2$s", line %3$d)', 'tokenforge-crucible' ), $r['error']['message'], '' === $r['error']['file'] ? __( 'Global SCSS', 'tokenforge-crucible' ) : $r['error']['file'], (int) $r['error']['line'] );
+	}
+	return $r;
 }
 
 /**

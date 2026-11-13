@@ -79,7 +79,7 @@ function tokenforge_crucible_recipes_routes() {
 			),
 			array(
 				'methods'             => 'POST',
-				'permission_callback' => $permission,
+				'permission_callback' => 'tokenforge_crucible_can_edit_scss',
 				'callback'            => static function ( $request ) {
 					$body = (array) $request->get_json_params();
 					$list = array();
@@ -96,6 +96,7 @@ function tokenforge_crucible_recipes_routes() {
 						}
 					}
 
+					tokenforge_crucible_snapshot();
 					update_option( 'tokenforge_crucible_recipes', array_values( $list ), false );
 
 					return rest_ensure_response(

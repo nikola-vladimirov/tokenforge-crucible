@@ -3,7 +3,7 @@
  * Plugin Name:       TokenForge Crucible
  * Plugin URI:        https://pristadigital.com
  * Description:       Add-on for TokenForge that restores Global SCSS, custom recipes and builder sync.
- * Version:           0.4.0
+ * Version:           0.5.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Prista Digital
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.4.0' );
+define( 'TOKENFORGE_CRUCIBLE_VERSION', '0.5.0' );
 define( 'TOKENFORGE_CRUCIBLE_FILE', __FILE__ );
 
 // TokenForge 0.54.2 is the first build with the Transfer and Starter hooks Crucible uses.
@@ -87,13 +87,20 @@ function tokenforge_crucible_boot() {
 	require_once __DIR__ . '/includes/block-editor.php';
 	require_once __DIR__ . '/includes/recipes.php';
 	require_once __DIR__ . '/includes/transfer-starter.php';
+	require_once __DIR__ . '/includes/versions.php';
+	require_once __DIR__ . '/includes/scss-files.php';
 
 	tokenforge_crucible_scss_migrate();
 
-	// The sync class is 90 KB: load it only where it runs (Bricks pages, the REST routes, the admin).
+	// The sync class is 90 KB: load it only where it runs (Bricks pages, the REST routes, the admin, WP-CLI).
 	$bricks = \TokenForge\Platforms\Bricks::is_active();
-	if ( $bricks || is_admin() || tokenforge_crucible_is_rest_request() ) {
+	if ( $bricks || is_admin() || tokenforge_crucible_is_rest_request() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 		require_once __DIR__ . '/includes/class-scss-sync.php';
+		// The token lint and the site scan walk SCSS with the sync class, so they load with it.
+		require_once __DIR__ . '/includes/lint.php';
+		require_once __DIR__ . '/includes/site-scan.php';
+		// The AI abilities run in REST and MCP requests (under WP-CLI too: the MCP server over STDIO) and use all three.
+		require_once __DIR__ . '/includes/abilities.php';
 	}
 
 	// Builder <-> Global SCSS sync, as TokenForge 0.53.7 started it (Bricks only).
