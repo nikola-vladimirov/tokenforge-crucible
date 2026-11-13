@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -10,9 +10,19 @@ Add-on for TokenForge: restores Global SCSS, your recipes, builder sync and the 
 
 == Description ==
 
-TokenForge Crucible adds the features the WordPress.org build of TokenForge does not ship: the Global SCSS editor, the SCSS dock in the Bricks builder and in the block editor (with TokenForge 0.57.0 or later), Automatic.css custom SCSS import, your own recipes, two-way builder class sync, and Global SCSS in Export, Import and Reset.
+TokenForge Crucible adds the features the WordPress.org build of TokenForge does not ship. You write SCSS on top of your TokenForge tokens, and Crucible keeps it tidy, safe to change and close to where you build.
 
-Requires TokenForge 0.54.2 or later.
+* Global SCSS editor in the TokenForge dashboard, compiled on Save, with the last working CSS kept when something does not compile.
+* SCSS dock in the builder: Bricks, the block editor (TokenForge 0.57.0 or later), and Etch, Oxygen, Breakdance, Elementor and Divi with a TokenForge version that has the builder hook. Live preview in the canvas, "Go to class" for the selected element, Alt+Shift+S.
+* Two-way class sync with Bricks global classes.
+* Versions: every save can be undone, named versions, what changed since then, and restore of only the parts you choose.
+* Token lint: finds hard-coded values that have a token and puts the token in with one click. A site scan also reads the custom CSS of the builder.
+* Site report: unused Global SCSS classes, classes that duplicate each other, and the size of each class.
+* SCSS files: split your SCSS into files loaded with @use "name";, plus page files that load only on the pages, templates or post types you choose.
+* AI abilities for agents over MCP: read, check and save SCSS classes using tokens, lint a page, run the site report, save a version.
+* Your own recipes, custom SCSS from an imported framework settings file, and Global SCSS in Export, Import and Reset.
+
+Requires TokenForge 0.54.2 or later. Updates come from GitHub releases.
 
 Deleting the add-on keeps your Global SCSS, recipes and sync settings in the database, so reinstalling it (or moving to a TokenForge build that has Global SCSS) brings them back. The versions you saved by name stay too (the options tokenforge_crucible_versions and tokenforge_crucible_version_1, _2 and so on), and so does the last site report (the option tokenforge_crucible_site_report). Your SCSS files stay as well (the options tokenforge_crucible_scss_files, tokenforge_crucible_page_map, tokenforge_crucible_page_css_built and one tokenforge_crucible_page_css_ option for each page file); TokenForge Reset with Global SCSS ticked removes them. To clear the SCSS and recipes first, use TokenForge Reset with Global SCSS and Recipes ticked.
 
@@ -21,6 +31,9 @@ Developed by Prista Digital, https://pristadigital.com
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.5.1 =
+* "View details" for an update shows the Crucible banner, icon and description next to the changelog. The readme lists every feature.
 
 = 0.5.0 =
 * Versions: every Global SCSS or recipe save can be undone; save named versions, see what changed and restore only the parts you tick.

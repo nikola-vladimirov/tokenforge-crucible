@@ -84,7 +84,33 @@ function tokenforge_crucible_update_check( $update, $plugin_data, $plugin_file )
 add_filter( 'update_plugins_github.com', 'tokenforge_crucible_update_check', 10, 3 );
 
 /**
- * "View version details" on the update row: the release notes.
+ * The Description section of the installed readme.txt as HTML, for the details window.
+ *
+ * @return string Escaped HTML; '' when the readme has no Description.
+ */
+function tokenforge_crucible_readme_description() {
+	$readme = (string) @file_get_contents( plugin_dir_path( TOKENFORGE_CRUCIBLE_FILE ) . 'readme.txt' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local file of this plugin.
+	if ( ! preg_match( '/^== Description ==\s*$(.*?)^== /ms', str_replace( "\r\n", "\n", $readme ), $m ) ) {
+		return '';
+	}
+	$html = '';
+	$list = array();
+	foreach ( explode( "\n", trim( $m[1] ) ) as $line ) {
+		if ( 0 === strpos( $line, '* ' ) ) {
+			$list[] = '<li>' . esc_html( substr( $line, 2 ) ) . '</li>';
+			continue;
+		}
+		if ( $list ) {
+			$html .= '<ul>' . implode( '', $list ) . '</ul>';
+			$list  = array();
+		}
+		$html .= '' === trim( $line ) ? '' : '<p>' . esc_html( $line ) . '</p>';
+	}
+	return $html . ( $list ? '<ul>' . implode( '', $list ) . '</ul>' : '' );
+}
+
+/**
+ * "View version details" on the update row: the description, the release notes, the banner and icon.
  *
  * @param false|object|array $result The result so far.
  * @param string             $action The API action.
@@ -106,7 +132,18 @@ function tokenforge_crucible_update_details( $result, $action, $args ) {
 		'homepage'      => $release['url'],
 		'last_updated'  => $release['date'],
 		'download_link' => $release['package'],
-		'sections'      => array( 'changelog' => '<pre style="white-space:pre-wrap">' . esc_html( $release['notes'] ) . '</pre>' ),
+		'banners'       => array(
+			'low'  => plugins_url( 'assets/banner-772x250.png', TOKENFORGE_CRUCIBLE_FILE ),
+			'high' => plugins_url( 'assets/banner-1544x500.png', TOKENFORGE_CRUCIBLE_FILE ),
+		),
+		'icons'         => array(
+			'1x' => plugins_url( 'assets/icon-128x128.png', TOKENFORGE_CRUCIBLE_FILE ),
+			'2x' => plugins_url( 'assets/icon-256x256.png', TOKENFORGE_CRUCIBLE_FILE ),
+		),
+		'sections'      => array(
+			'description' => tokenforge_crucible_readme_description(),
+			'changelog'   => '<pre style="white-space:pre-wrap">' . esc_html( $release['notes'] ) . '</pre>',
+		),
 	);
 }
 add_filter( 'plugins_api', 'tokenforge_crucible_update_details', 10, 3 );

@@ -2,6 +2,11 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.5.1
+
+- "View details" for a Crucible update now shows the Crucible banner, the icon and a description of what Crucible does, next to the changelog.
+- The readme describes every feature, including those added in 0.5.0.
+
 ## 0.5.0
 
 Versions, token lint, a site CSS report, SCSS files and per-page SCSS, AI abilities, and the dock in more builders (needs TokenForge 0.54.2 or later; the dock outside Bricks and the block editor needs a TokenForge version with the builder hook).
