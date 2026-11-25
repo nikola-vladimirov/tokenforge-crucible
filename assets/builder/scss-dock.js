@@ -74,7 +74,7 @@
 
 	// ---- DOM ------------------------------------------------------------------
 	var root = null, tab = null, ed = null, preview = null;
-	function build() {
+	function build( p ) {
 		root = document.createElement( 'div' );
 		root.id = 'tf-sdock';
 		root.className = 'tf-sdock';
@@ -129,20 +129,30 @@
 		q.addEventListener( 'input', function () { st.cheatQ = q.value; renderCheat(); } );
 		q.addEventListener( 'keydown', function ( e ) { if ( 'Enter' === e.key ) { e.preventDefault(); var first = root.querySelector( '.tf-sdock-cheat-list li[data-i]' ); if ( first ) { pick( parseInt( first.getAttribute( 'data-i' ), 10 ) ); } } } );
 
+		// In the page first: the editor takes a detached textarea for a shadow root and skips the code editor.
+		// shortcut: Bricks keeps the textarea it always had; attach there too once Bricks' own CodeMirror is checked live in the dock.
+		if ( FLAT ) { p.appendChild( root ); }
 		ed = window.TokenForgeScssEditor.create( root.querySelector( 'textarea' ), {
 			api: api,
 			height: 'fill',
+			codeEditor: cfg.codeEditor || false, // WordPress's code editor outside Bricks (Bricks has its own CodeMirror).
+			textarea: FLAT && ! cfg.codeEditor, // highlighting off (or a builder without it): never a host page's own CodeMirror.
 			data: function () { return { recipes: st.recipes, recipesOn: st.recipesOn, ref: st.ref }; },
 			onChange: changed,
 			onSave: function () { save( false ); }
 		} );
+		// The code editor wraps lines by its width: tell it when the dock gets wider or narrower (sidebars, canvas moves).
+		if ( FLAT && window.ResizeObserver ) {
+			var rw = 0;
+			new ResizeObserver( function ( es ) { var w = Math.round( es[0].contentRect.width ); if ( w && w !== rw ) { rw = w; ed.refresh(); } } ).observe( root );
+		}
 	}
 
 	function mount() {
 		var p = BLOCKS ? document.querySelector( '.interface-interface-skeleton__content' ) : BUILDER ? ( tb() ? document.body : null ) : document.getElementById( 'bricks-preview' ); // no builder tools (yet): no dock
 		// The block editor: only where the editor header is (the launcher lives there), not on the Widgets screen.
 		if ( ! p || ( BLOCKS && ! document.querySelector( '.editor-header__settings' ) ) ) { return false; }
-		if ( ! root ) { build(); }
+		if ( ! root ) { build( p ); }
 		if ( preview && preview !== p ) { unpad( preview ); }
 		preview = p;
 		if ( root.parentNode !== p ) { p.appendChild( root ); }

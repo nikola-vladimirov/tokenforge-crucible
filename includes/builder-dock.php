@@ -39,6 +39,56 @@ function tokenforge_crucible_builder_enqueue( $builder ) {
 }
 add_action( 'tokenforge_builder_enqueue', 'tokenforge_crucible_builder_enqueue' );
 
+/** The first TokenForge with the builder hook the dock needs outside Bricks and the block editor. */
+const TOKENFORGE_CRUCIBLE_BUILDER_HOOK_VERSION = '0.58.0';
+
+/**
+ * Names the builder the dock cannot reach with this TokenForge, or ''.
+ *
+ * @param string  $tf_version TokenForge version.
+ * @param array[] $detected   From \TokenForge\Platforms\Platforms::detected() (id, label, active).
+ * @return string The builder's label, or '' when nothing is missing.
+ */
+function tokenforge_crucible_builder_hook_missing( $tf_version, $detected ) {
+	if ( version_compare( $tf_version, TOKENFORGE_CRUCIBLE_BUILDER_HOOK_VERSION, '>=' ) ) {
+		return '';
+	}
+	foreach ( (array) $detected as $p ) {
+		if ( ! empty( $p['active'] ) && in_array( $p['id'] ?? '', array( 'etch', 'oxygen', 'breakdance', 'elementor', 'divi' ), true ) ) {
+			return (string) $p['label'];
+		}
+	}
+	return '';
+}
+
+/**
+ * Tells admins, on the plugins and TokenForge screens, when the dock cannot load in their builder.
+ */
+function tokenforge_crucible_builder_hook_notice() {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || ! current_user_can( 'manage_options' ) || ! defined( 'TOKENFORGE_VERSION' ) || ! tokenforge_crucible_scss_enabled()
+		|| ( 'plugins' !== $screen->id && false === strpos( (string) $screen->id, 'tokenforge' ) )
+		|| ! is_callable( array( '\TokenForge\Platforms\Platforms', 'detected' ) ) ) {
+		return;
+	}
+	$label = tokenforge_crucible_builder_hook_missing( TOKENFORGE_VERSION, \TokenForge\Platforms\Platforms::detected() );
+	if ( '' === $label ) {
+		return;
+	}
+	printf(
+		'<div class="notice notice-warning"><p>%s</p></div>',
+		esc_html(
+			sprintf(
+				/* translators: 1: builder name, 2: TokenForge version. */
+				__( 'The Global SCSS dock needs TokenForge %2$s or later to load in %1$s. Update TokenForge to use it there.', 'tokenforge-crucible' ),
+				$label,
+				TOKENFORGE_CRUCIBLE_BUILDER_HOOK_VERSION
+			)
+		)
+	);
+}
+add_action( 'admin_notices', 'tokenforge_crucible_builder_hook_notice' );
+
 /**
  * Enqueues the dock scripts and style with their settings.
  *
@@ -66,6 +116,20 @@ function tokenforge_crucible_dock_assets( $platform = '', $builder = '' ) {
 		$deps[]          = 'tokenforge-builder';
 		$cfg['platform'] = 'builder';
 		$cfg['builder']  = $builder;
+	}
+	// Outside Bricks (which has its own CodeMirror) the dock gets WordPress's code editor; false when the user turned highlighting off.
+	// shortcut: not in Oxygen and Breakdance, where TokenForge prints the queue itself and the editor's underscore would replace a global _ there; add them once checked live.
+	if ( '' !== $platform && ! in_array( $builder, array( 'oxygen', 'breakdance' ), true ) && function_exists( 'wp_enqueue_code_editor' ) ) {
+		$cfg['codeEditor'] = wp_enqueue_code_editor(
+			array(
+				'type'       => 'text/x-scss',
+				'codemirror' => array(
+					'indentUnit'     => 4,
+					'tabSize'        => 4,
+					'indentWithTabs' => true,
+				),
+			)
+		);
 	}
 
 	wp_enqueue_script( 'tokenforge-crucible-scss-outline', $base . 'assets/admin/scss-outline.js', array(), $ver, true );

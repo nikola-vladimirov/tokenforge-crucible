@@ -2,6 +2,13 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.5.2
+
+- The SCSS dock in the block editor, Etch, Elementor and Divi now uses the WordPress code editor, in the dock's dark colours: line numbers, SCSS highlighting, bracket matching and suggestions. Before, it was a plain text box there. Users who turned off syntax highlighting in their profile keep the text box, and so do Bricks, Oxygen and Breakdance for now.
+- Versions: comparing a version with now also shows when a page file only changed where it loads (its pages or post types), as a "Loads on" line.
+- On the Plugins and TokenForge screens, a notice says when the dock cannot load in the active builder because TokenForge is older than 0.58.0 (only while the Global SCSS is on).
+- The readme names TokenForge 0.58.0 as the version the dock needs in Etch, Oxygen, Breakdance, Elementor and Divi.
+
 ## 0.5.1
 
 - "View details" for a Crucible update now shows the Crucible banner, the icon and a description of what Crucible does, next to the changelog.

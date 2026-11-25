@@ -91,6 +91,25 @@
 #tf-sdock .tf-ol-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #tf-sdock.is-left .tf-ol-t, #tf-sdock.is-right .tf-ol-t { display: none; }
 #tf-sdock .tf-sdock-editor .CodeMirror { flex: 1 1 auto; height: 100% !important; background: var(--sd-bg); color: var(--sd-text); font-family: var(--sd-mono); font-size: 13px; }
+/* The WordPress code editor (block editor and the other builders): dark like the dock, as the dashboard editor is themed. */
+#tf-sdock .CodeMirror-gutters { background: var(--sd-bg); border-right: 1px solid var(--sd-line); }
+#tf-sdock .CodeMirror-linenumber { color: var(--sd-muted); }
+#tf-sdock .CodeMirror-cursor { border-left: 2px solid var(--sd-text); }
+#tf-sdock .CodeMirror-selected, #tf-sdock .CodeMirror-focused .CodeMirror-selected { background: color-mix(in srgb, var(--sd-accent) 30%, transparent); }
+#tf-sdock .CodeMirror-activeline-background { background: color-mix(in srgb, var(--sd-text) 5%, transparent); }
+#tf-sdock .CodeMirror-matchingbracket { color: var(--sd-text) !important; background: color-mix(in srgb, var(--sd-accent) 35%, transparent); }
+#tf-sdock .tf-cm-err { background: color-mix(in srgb, #e5484d 22%, transparent); }
+#tf-sdock .cm-comment { color: var(--sd-muted); }
+#tf-sdock .cm-keyword, #tf-sdock .cm-def { color: #c792ea; }
+#tf-sdock .cm-variable, #tf-sdock .cm-variable-2, #tf-sdock .cm-variable-3 { color: #f5b84b; }
+#tf-sdock .cm-property { color: #7fb4ff; }
+#tf-sdock .cm-atom, #tf-sdock .cm-number { color: #f78c6c; }
+#tf-sdock .cm-string, #tf-sdock .cm-string-2 { color: #a5d38a; }
+#tf-sdock .cm-tag, #tf-sdock .cm-qualifier, #tf-sdock .cm-builtin { color: #ffcb6b; }
+/* Its suggestion list hangs off <body>: above the fixed dock, dark like it. */
+.CodeMirror-hints.tf { z-index: 100001; background: #23292f; border: 1px solid #2d353d; box-shadow: 0 12px 32px rgba(0, 0, 0, .65); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+.CodeMirror-hints.tf .CodeMirror-hint { color: #e2e6e9; }
+.CodeMirror-hints.tf li.CodeMirror-hint-active { background: #ffd54d; color: #1e2124; }
 
 /* Suggestions (plain editor) */
 #tf-sdock .tf-ac-list { position: absolute; z-index: 30; max-height: 220px; overflow: auto; margin: 0; padding: 4px; list-style: none; background: var(--sd-bg-2); border: 1px solid var(--sd-line); border-radius: 6px; box-shadow: var(--builder-box-shadow-popup, 0 12px 32px rgba(0,0,0,.65)); }

@@ -695,7 +695,7 @@
 		try {
 			if ( ! shadow && window.wp && window.wp.codeEditor && opts.codeEditor ) {
 				cm = window.wp.codeEditor.initialize( ta, opts.codeEditor ).codemirror;
-			} else if ( ! shadow && window.CodeMirror && window.CodeMirror.fromTextArea ) {
+			} else if ( ! shadow && ! opts.textarea && window.CodeMirror && window.CodeMirror.fromTextArea ) {
 				var CMg = window.CodeMirror;
 				cm = CMg.fromTextArea( ta, { mode: CMg.mimeModes && CMg.mimeModes[ 'text/x-scss' ] ? 'text/x-scss' : 'css', lineNumbers: true, indentWithTabs: true, tabSize: 4, indentUnit: 4, matchBrackets: true } );
 			}

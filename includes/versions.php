@@ -154,10 +154,20 @@ function tokenforge_crucible_version_maps( $data ) {
 		'tokens'  => array(),
 		'files'   => array(),
 	);
-	// shortcut: a file's text is compared, not where it loads; add pages and types when that change must show.
 	foreach ( isset( $data['scss']['files'] ) && is_array( $data['scss']['files'] ) ? $data['scss']['files'] : array() as $name => $file ) {
 		if ( is_array( $file ) && isset( $file['code'] ) && is_string( $file['code'] ) ) {
 			$out['files'][ (string) $name ] = $file['code'];
+			// Where a page file loads is part of the file, so a change there shows as a line of its own.
+			$where = array();
+			foreach ( array( 'pages', 'types' ) as $k ) {
+				if ( ! empty( $file[ $k ] ) && is_array( $file[ $k ] ) ) {
+					$where[] = ( 'pages' === $k ? __( 'pages', 'tokenforge-crucible' ) : __( 'post types', 'tokenforge-crucible' ) ) . ' ' . implode( ', ', array_map( 'strval', $file[ $k ] ) );
+				}
+			}
+			if ( $where ) {
+				/* translators: %s: the pages and post types a page file loads on. */
+				$out['files'][ (string) $name ] .= "\n/* " . sprintf( __( 'Loads on: %s', 'tokenforge-crucible' ), implode( '; ', $where ) ) . ' */';
+			}
 		}
 	}
 	foreach ( \TokenForgeCrucible\Scss_Sync::class_blocks( $out['source'] ) as $name => $it ) {
