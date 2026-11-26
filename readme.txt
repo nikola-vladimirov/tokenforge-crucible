@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.5.2
+Stable tag: 0.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,7 +13,7 @@ Add-on for TokenForge: restores Global SCSS, your recipes, builder sync and the 
 TokenForge Crucible adds the features the WordPress.org build of TokenForge does not ship. You write SCSS on top of your TokenForge tokens, and Crucible keeps it tidy, safe to change and close to where you build.
 
 * Global SCSS editor in the TokenForge dashboard, compiled on Save, with the last working CSS kept when something does not compile.
-* SCSS dock in the builder: Bricks, the block editor (TokenForge 0.57.0 or later), and Etch, Oxygen, Breakdance, Elementor and Divi (TokenForge 0.58.0 or later). Live preview in the canvas, "Go to class" for the selected element, Alt+Shift+S.
+* SCSS dock in the builder: Bricks, the block editor (TokenForge 0.57.0 or later), and Etch, Oxygen, Breakdance, Elementor and Divi (TokenForge 0.58.0 or later). Live preview in the canvas (with TokenForge 0.58.2 or later it replaces the saved SCSS instead of sitting on top of it), "Go to class" for the selected element, Alt+Shift+S.
 * Two-way class sync with Bricks global classes.
 * Versions: every save can be undone, named versions, what changed since then, and restore of only the parts you choose.
 * Token lint: finds hard-coded values that have a token and puts the token in with one click. A site scan also reads the custom CSS of the builder.
@@ -31,6 +31,9 @@ Developed by Prista Digital, https://pristadigital.com
 == Changelog ==
 
 The full history is in CHANGELOG.md.
+
+= 0.5.3 =
+* The readme names TokenForge 0.58.2: from that version, the dock's live preview in the canvas replaces your saved SCSS instead of sitting on top of it.
 
 = 0.5.2 =
 * The SCSS dock in the block editor, Etch, Elementor and Divi uses the WordPress code editor (line numbers, SCSS highlighting, suggestions).

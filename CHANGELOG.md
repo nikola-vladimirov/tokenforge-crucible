@@ -2,6 +2,10 @@
 
 All the changes to TokenForge Crucible, newest first.
 
+## 0.5.3
+
+- The readme names TokenForge 0.58.2: from that version the canvas copy of the TokenForge stylesheet keeps the Global SCSS marker, so the dock's live preview replaces your saved SCSS instead of sitting on top of it.
+
 ## 0.5.2
 
 - The SCSS dock in the block editor, Etch, Elementor and Divi now uses the WordPress code editor, in the dock's dark colours: line numbers, SCSS highlighting, bracket matching and suggestions. Before, it was a plain text box there. Users who turned off syntax highlighting in their profile keep the text box, and so do Bricks, Oxygen and Breakdance for now.
